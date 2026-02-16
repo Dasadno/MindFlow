@@ -10,30 +10,30 @@ export const LoginForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-white">Login</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm p-6 bg-dark-ocean rounded-lg shadow-xl">
+            <h2 className="text-2xl font-bold text-center text-text-primary">Login</h2>
 
             <div className="flex flex-col gap-1">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                <label htmlFor="email" className="text-sm font-medium text-text-secondary">Email</label>
                 <input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="px-4 py-2 bg-deep-midnight border border-dark-ocean rounded-md focus:outline-none focus:ring-2 focus:ring-bright-turquoise text-text-primary"
                     placeholder="your@email.com"
                     required
                 />
             </div>
 
             <div className="flex flex-col gap-1">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                <label htmlFor="password" className="text-sm font-medium text-text-secondary">Password</label>
                 <input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="px-4 py-2 bg-deep-midnight border border-dark-ocean rounded-md focus:outline-none focus:ring-2 focus:ring-bright-turquoise text-text-primary"
                     placeholder="********"
                     required
                 />
@@ -41,7 +41,7 @@ export const LoginForm = () => {
 
             <button
                 type="submit"
-                className="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                className="w-full px-4 py-2 bg-gradient-primary text-white rounded-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-bright-turquoise focus:ring-offset-2 focus:ring-offset-deep-midnight transition-shadow font-semibold"
             >
                 Sign In
             </button>

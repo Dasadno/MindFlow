@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    /* 🔵 Глубокие синие */
+    --color-deep-midnight: #0B1E3B;
+    --color-dark-ocean: #1A3C5E;
+    
+    /* 💎 Голубые и Циан */
+    --color-bright-turquoise: #26D0CE;
+    --color-sky-blue: #5BC0EB;
+    
+    /* 🟢 Зеленые и Мятные */
+    --color-light-mint: #7AF8C4;
+    --color-soft-teal: #50E3C2;
+    
+    /* Текст */
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #B0BEC5;
+  }
+  
+  body {
+    @apply bg-deep-midnight text-text-primary;
+  }
+}
+

@@ -404,6 +404,3 @@ All errors follow this format:
 
 
 # Client side of the project 
-Ниже я опишу как работать с клиентской частью проекта. 
-
-
