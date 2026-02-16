@@ -30,7 +30,7 @@ type Brain struct {
 
 	// memory — ссылка на систему памяти для извлечения контекста.
 	// Think() делает vector search по релевантным воспоминаниям.
-	Memory *MemorySystem
+	//	Memory *MemorySystem
 
 	// emotions — ссылка на движок эмоций.
 	// Текущее эмоциональное состояние включается в контекстный промпт.
@@ -116,7 +116,7 @@ type CognitiveContext struct {
 	WorldContext WorldContext
 
 	// RelevantMemories — воспоминания, извлечённые vector search по текущей ситуации.
-	RelevantMemories []MemoryEntry
+	//TODO	RelevantMemories []MemoryEntry
 
 	// CurrentEmotions — активные дискретные эмоции в данный момент.
 	CurrentEmotions []DiscreteEmotion
