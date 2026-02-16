@@ -139,8 +139,8 @@ type GraphNode struct {
 // GraphEdge — ребро графа (связь).
 type GraphEdge struct {
 	Source   string
-	Target  string
-	Type    string
+	Target   string
+	Type     string
 	Strength float64
 }
 
