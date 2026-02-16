@@ -231,6 +231,7 @@ type EventFilter struct {
 	Limit int
 }
 
+
 // NewRepository создаёт Repository поверх существующего *sql.DB.
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{DB: db}
@@ -303,7 +304,6 @@ func (r *Repository) GetAgentByID(id string) (*AgentRecord, error) {
 		&a.ID, &a.Name, &a.Personality, &a.MoodState, &a.Goals,
 		&a.State, &a.IsActive, &a.CreatedAt, &a.LastActive, &a.Snapshot,
 	)
-
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

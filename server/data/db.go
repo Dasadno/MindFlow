@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	_ "modernc.org/sqlite"
 )
@@ -12,7 +13,11 @@ var Db *sql.DB
 
 func DbConnection() {
 	var err error
-	Db, err = sql.Open("sqlite", "./society.db")
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "server/data/society.db" // значение по умолчанию
+	}
+	Db, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		fmt.Println("Unable to connect db")
 		panic(err)
