@@ -49,6 +49,152 @@ Default port: `:8080`
 
 ---
 
+## Database Schema
+
+**Engine:** SQLite (WAL mode) | **File:** `server/data/society.db`
+
+### ER Diagram
+
+```
+┌─────────────────────────────────┐       ┌──────────────────────────────────────┐
+│            agents               │       │           relationships              │
+├─────────────────────────────────┤       ├──────────────────────────────────────┤
+│ PK  id              TEXT        │◄──┐   │ PK  id                TEXT          │
+│     name            TEXT    [NN]│   │   │ FK  agent1_id          TEXT     [NN] │──┐
+│     personality     TEXT    [NN]│   │   │ FK  agent2_id          TEXT     [NN] │──┤
+│     mood_state      TEXT        │   │   │     type               TEXT     [NN] │  │
+│     goals           TEXT        │   │   │     strength           REAL   [0.0]  │  │
+│     state           TEXT [idle] │   │   │     interaction_count  INTEGER  [0]  │  │
+│     is_active       BOOL  [1]  │   │   │     last_interaction   DATETIME      │  │
+│     created_at      DATETIME[NN]│   │   │     metadata           TEXT          │  │
+│     last_active     DATETIME    │   │   │                                      │  │
+│     snapshot        TEXT        │   │   │ UQ (agent1_id, agent2_id)            │  │
+└─────────────────────────────────┘   │   └──────────────────────────────────────┘  │
+              ▲                       │                                             │
+              │                       └─────────────────────────────────────────────┘
+              │
+              │   ┌──────────────────────────────────────┐
+              │   │            memories                   │
+              │   ├──────────────────────────────────────┤
+              │   │ PK  id              TEXT              │
+              ├───│ FK  agent_id        TEXT         [NN] │
+              │   │     type            TEXT         [NN] │
+              │   │     content         TEXT         [NN] │
+              │   │     emotional_tag   TEXT              │
+              │   │     importance      REAL       [0.5]  │
+              │   │     access_count    INTEGER      [0]  │
+              │   │     last_accessed   DATETIME          │
+              │   │     related_agents  TEXT              │
+              │   │     metadata        TEXT              │
+              │   │     created_at      DATETIME    [NN]  │
+              │   └──────────────────────────────────────┘
+              │
+              │   ┌──────────────────────────────────────┐
+              │   │             events                    │
+              │   ├──────────────────────────────────────┤
+              │   │ PK  id              TEXT              │
+              │   │     topic           TEXT         [NN] │
+              │   │     type            TEXT         [NN] │
+              │   │     source          TEXT         [NN] │
+              │   │     affected_agents TEXT              │
+              │   │     payload         TEXT              │
+              │   │     status          TEXT   [pending]  │
+              │   │     tick            INTEGER           │
+              │   │     created_at      DATETIME    [NN]  │
+              │   └──────────────────────────────────────┘
+
+┌──────────────────────────────────────┐
+│          world_state (KV)            │
+├──────────────────────────────────────┤
+│ PK  key             TEXT             │
+│     value           TEXT        [NN] │
+│     updated_at      DATETIME   [NN]  │
+└──────────────────────────────────────┘
+```
+
+**Legend:** `PK` — Primary Key | `FK` — Foreign Key | `UQ` — Unique Constraint | `[NN]` — NOT NULL | `[value]` — DEFAULT
+
+### Column Details
+
+#### `agents` — autonomous AI entities
+
+| Column | Type | Default | Description |
+|--------|------|---------|-------------|
+| `id` | TEXT | — | UUID, primary key |
+| `name` | TEXT | — | Display name |
+| `personality` | TEXT (JSON) | — | `{ "openness": 0.85, "conscientiousness": 0.6, "extraversion": 0.7, "agreeableness": 0.55, "neuroticism": 0.3, "coreValues": [...], "quirks": [...] }` |
+| `mood_state` | TEXT (JSON) | NULL | `{ "pleasure": 0.6, "arousal": 0.8, "dominance": 0.4 }` — PAD model |
+| `goals` | TEXT (JSON) | NULL | `[{ "description": "...", "priority": 0.8, "progress": 0.3 }]` |
+| `state` | TEXT | `idle` | One of: `idle`, `thinking`, `acting`, `interacting`, `sleeping` |
+| `is_active` | BOOLEAN | `1` | `0` = soft-deleted |
+| `snapshot` | TEXT (JSON) | NULL | Full serialized state for server restarts |
+
+#### `relationships` — connections between agents
+
+| Column | Type | Default | Description |
+|--------|------|---------|-------------|
+| `id` | TEXT | — | UUID |
+| `agent1_id` | TEXT (FK) | — | First agent (ON DELETE CASCADE) |
+| `agent2_id` | TEXT (FK) | — | Second agent (ON DELETE CASCADE) |
+| `type` | TEXT | — | `friend` \| `rival` \| `neutral` \| `romantic` |
+| `strength` | REAL | `0.0` | Range: `-1.0` (hostile) to `1.0` (close bond) |
+| `interaction_count` | INTEGER | `0` | Total interactions between the pair |
+| `metadata` | TEXT (JSON) | NULL | `{ "firstMet": "...", "sharedMemories": 5 }` |
+
+#### `memories` — episodic and semantic memory entries
+
+| Column | Type | Default | Description |
+|--------|------|---------|-------------|
+| `id` | TEXT | — | UUID |
+| `agent_id` | TEXT (FK) | — | Owner agent (ON DELETE CASCADE) |
+| `type` | TEXT | — | `episodic` \| `semantic` \| `procedural` |
+| `content` | TEXT | — | Natural language memory content |
+| `emotional_tag` | TEXT | NULL | Emotion at encoding time: `joy`, `fear`, `trust`, etc. |
+| `importance` | REAL | `0.5` | Salience score `0.0`–`1.0` |
+| `access_count` | INTEGER | `0` | Recall frequency (affects retention) |
+| `related_agents` | TEXT (JSON) | NULL | `["agent-uuid-1", "agent-uuid-2"]` |
+
+#### `events` — world and agent events
+
+| Column | Type | Default | Description |
+|--------|------|---------|-------------|
+| `id` | TEXT | — | UUID |
+| `topic` | TEXT | — | `global` \| `interaction` \| `mood_change` \| `goal_update` \| `memory` \| `relationship` \| `system` |
+| `type` | TEXT | — | Specific event type: `disaster`, `celebration`, `discovery`, etc. |
+| `source` | TEXT | — | Agent ID, `"system"`, or `"api"` |
+| `affected_agents` | TEXT (JSON) | NULL | `["all"]` or `["uuid-1", "uuid-2"]` |
+| `payload` | TEXT (JSON) | NULL | Event-specific data |
+| `status` | TEXT | `pending` | `pending` \| `active` \| `completed` |
+| `tick` | INTEGER | NULL | Simulation tick when event occurred |
+
+#### `world_state` — key-value simulation state
+
+| Key | Initial Value | Description |
+|-----|---------------|-------------|
+| `current_tick` | `0` | Monotonically increasing tick counter |
+| `simulation_speed` | `1.0` | Speed multiplier (0.1x – 10.0x) |
+| `is_paused` | `true` | Simulation starts paused |
+
+### Indexes
+
+| Index | Table | Column(s) | Purpose |
+|-------|-------|-----------|---------|
+| `idx_agents_is_active` | agents | `is_active` | Filter active agents |
+| `idx_agents_state` | agents | `state` | Filter by state |
+| `idx_relationships_agent1` | relationships | `agent1_id` | Lookup by first agent |
+| `idx_relationships_agent2` | relationships | `agent2_id` | Lookup by second agent |
+| `idx_relationships_type` | relationships | `type` | Filter by type |
+| `idx_memories_agent_id` | memories | `agent_id` | Agent's memories |
+| `idx_memories_type` | memories | `agent_id, type` | Agent's memories by type |
+| `idx_memories_importance` | memories | `importance` | Sort by salience |
+| `idx_memories_created_at` | memories | `created_at` | Chronological queries |
+| `idx_events_topic` | events | `topic` | Filter by topic |
+| `idx_events_source` | events | `source` | Filter by source |
+| `idx_events_status` | events | `status` | Filter by status |
+| `idx_events_tick` | events | `tick` | Tick-based queries |
+
+---
+
 ## API Endpoints
 
 Base URL: `/api/v1`
