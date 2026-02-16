@@ -56,31 +56,81 @@ export const HomePage = () => {
         </div>
 
         {/* Интерактивные "кружащиеся" карточки */}
-        <div className="relative mt-24 w-full max-w-5xl h-[300px] hidden md:block">
-            <div className="absolute top-0 left-10 w-48 h-64 bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-6 animate-float shadow-2xl">
-                <div className="w-10 h-10 rounded-full bg-bright-turquoise mb-4 shadow-[0_0_15px_rgba(38,208,206,0.5)]" />
-                <div className="h-2 w-full bg-white/20 rounded mb-2" />
-                <div className="h-2 w-2/3 bg-white/10 rounded" />
-                <div className="mt-20 text-[10px] uppercase tracking-widest text-bright-turquoise">Agent_01 Active</div>
-            </div>
-            <div className="absolute top-20 right-10 w-56 h-72 bg-white/5 border border-white/20 backdrop-blur-xl rounded-3xl p-6 animate-float-delayed shadow-2xl z-20">
-                <div className="w-10 h-10 rounded-full bg-light-mint mb-4 shadow-[0_0_15px_rgba(122,248,196,0.5)]" />
-                <div className="space-y-3 font-mono text-[10px] text-text-secondary">
-                    <div>LOADING_MIND_STATE...</div>
-                    <div className="h-1 w-full bg-white/10" />
-                    <div>EVOLVING_LOGIC...</div>
-                </div>
-                <div className="mt-24 text-[10px] uppercase tracking-widest text-light-mint">Processing_Mind</div>
-            </div>
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-64 h-48 bg-gradient-to-br from-dark-ocean/40 to-deep-midnight border border-white/10 backdrop-blur-md rounded-3xl p-6 animate-float-slow shadow-2xl">
-                <div className="text-xs font-mono text-sky-blue mb-4">MindFlow Stream</div>
-                <div className="space-y-2 opacity-50">
-                    <div className="h-1 w-full bg-sky-blue" />
-                    <div className="h-1 w-[80%] bg-sky-blue" />
-                    <div className="h-1 w-[90%] bg-sky-blue" />
-                </div>
+    <div className="relative mt-24 w-full max-w-5xl h-[300px] hidden md:block">
+    
+    {/* Добавляем стили для анимаций внутри карточек */}
+    <style>{`
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink { 50% { border-color: transparent } }
+        @keyframes scan { 0% { top: 0% } 100% { top: 100% } }
+        @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        .typing-text { overflow: hidden; white-space: nowrap; border-right: 2px solid; animation: typing 3s steps(30, end) infinite, blink .5s step-end infinite; }
+    `}</style>
+
+    {/* Карточка 1: Агент в режиме диалога */}
+    <div className="absolute top-0 left-10 w-48 h-64 bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-6 animate-float shadow-2xl overflow-hidden">
+        <div className="w-10 h-10 rounded-full bg-bright-turquoise mb-4 shadow-[0_0_15px_rgba(38,208,206,0.5)] animate-pulse" />
+        <div className="space-y-3 font-mono text-[9px]">
+            <div className="text-bright-turquoise/80 typing-text"> ANALYZING_INPUT...</div>
+            <div className="text-white/40">USER: "Define Life"</div>
+            <div className="text-bright-turquoise/60 animate-pulse">AGENT: Thinking...</div>
+            <div className="h-1 w-full bg-white/5 rounded overflow-hidden relative">
+                <div className="absolute inset-0 bg-bright-turquoise/30 animate-[typing_2s_ease-in-out_infinite]" />
             </div>
         </div>
+        <div className="mt-14 text-[10px] uppercase tracking-widest text-bright-turquoise font-bold flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-bright-turquoise animate-ping" />
+            Agent_01 Active
+        </div>
+    </div>
+
+    {/* Карточка 2: Эволюция логики (с эффектом сканирования) */}
+        <div className="absolute top-20 right-10 w-56 h-72 bg-white/5 border border-white/20 backdrop-blur-xl rounded-3xl p-6 animate-float-delayed shadow-2xl z-20 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-light-mint/30 blur-sm animate-[scan_4s_linear_infinite]" />
+            <div className="w-10 h-10 rounded-full bg-light-mint mb-6 shadow-[0_0_15px_rgba(122,248,196,0.5)]" />
+            
+            <div className="space-y-4 font-mono text-[10px] text-text-secondary">
+                <div className="flex justify-between">
+                    <span>NEURAL_NET</span>
+                    <span className="text-light-mint">98.2%</span>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-light-mint/50 w-full -translate-x-1/4 animate-pulse" />
+                </div>
+                <div className="opacity-50 text-[8px] leading-tight">
+                    01011001 01001111 01010101 <br />
+                    01000001 01010010 01000101 <br />
+                    01001000 01000101 01010010
+                </div>
+            </div>
+            <div className="mt-16 text-[10px] uppercase tracking-widest text-light-mint flex justify-between items-center">
+                <span>Processing</span>
+                <span className="animate-bounce">...</span>
+            </div>
+        </div>
+    </div>
+
+    {/* Карточка 3: Поток данных (MindFlow Stream) */}
+    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-72 h-48 bg-gradient-to-br from-dark-ocean/60 to-deep-midnight border border-white/10 backdrop-blur-md rounded-3xl p-6 animate-float-slow shadow-2xl overflow-hidden">
+        <div className="text-xs font-mono text-sky-blue mb-4 flex justify-between">
+            <span>MindFlow Stream</span>
+            <span className="animate-pulse text-[8px] bg-sky-blue/20 px-2 rounded-full">LIVE</span>
+        </div>
+        <div className="space-y-2">
+            {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex gap-2">
+                    <div className="h-1 bg-sky-blue/30 rounded-full" style={{ width: `${Math.random() * 100}%`, transition: 'width 2s' }} />
+                    <div className="h-1 bg-sky-blue/10 rounded-full flex-1" />
+                </div>
+            ))}
+        </div>
+        <div className="mt-8 font-mono text-[8px] text-sky-blue/40 grid grid-cols-2 gap-2">
+            <div className="animate-[pulse-text_2s_infinite]">DATA_SENT: 1.2TB</div>
+            <div className="animate-[pulse-text_3s_infinite]">UPTIME: 99.9%</div>
+            <div className="animate-[pulse-text_1.5s_infinite]">SYNC: ACTIVE</div>
+            <div className="animate-[pulse-text_2.5s_infinite]">LATENCY: 2ms</div>
+        </div>
+    </div>
     </section>
 
       {/* --- Bento Grid Section (CONTENT UPDATED) --- */}
@@ -116,24 +166,23 @@ export const HomePage = () => {
         </div>
 
           {/* Блок с репозиторием (Акцентный) */}
-        <div className="md:col-span-1 group rounded-[2.5rem] bg-gradient-primary p-8 flex flex-col justify-between shadow-lg hover:shadow-[0_0_30px_rgba(38,208,206,0.3)] transition-all border border-white/20 shadow-[...rgba(122,248,196,0.4)]">
-            <h3 className="font-black text-white text-xl leading-tight ">OPEN SOURCE CODE</h3>
-            <a 
+        <a 
             href="https://github.com/Dasadno/Milk-IslandAI" 
             target="_blank"
-            className="text-[10px] font-bold bg-deep-midnight text-white px-4 py-2 rounded-lg text-center uppercase tracking-widest"
-            >
-            View GitHub
-            </a>
-        </div>
+            className="text-[10px] font-bold bg-deep-midnight text-white px-4 py-2 rounded-lg text-center uppercase tracking-widest">
+        
+            <div className="md:col-span-1 group rounded-[2.5rem] bg-gradient-primary p-8 flex flex-col justify-between shadow-lg hover:shadow-[0_0_30px_rgba(38,208,206,0.3)] transition-all border border-white/20 shadow-[...rgba(122,248,196,0.4)] hover:-translate-y-1">
+                <h3 className="font-black text-white text-xl leading-tight ">Открыть исходный код</h3>
+            </div>
+        </a>
 
         </div>
     </section>
 
       {/* --- CTA Section --- */}
-    <section className="px-6 py-32">
-        <div className="max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-[3rem] p-16 text-center relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-accent shadow-[0_0_15px_rgba(122,248,196,0.8)]" />
+    <section className="px-6 py-32 " >
+        <div className="max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-[3rem] p-16 text-center relative overflow-hidden shadow-2xl border border-white/10 p-12 hover:border-bright-turquoise/50 transition-all shadow-xl">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-accent shadow-[0_0_15px_rgba(122,248,196,0.5)]" />
             <h2 className="text-4xl md:text-5xl font-bold mb-8 bold text-light-mint">Присоединяйся к потоку</h2>
             <p className="text-text-secondary mb-12 text-lg">
                 Внеси свой вклад, создай нового агента или предложи идею, которая станет частью общего живого процесса.
