@@ -127,7 +127,7 @@ const (
 	EmotionSurprise     EmotionType = "surprise"     // Удивление — нейтральный Pleasure, высокий Arousal
 	EmotionDisgust      EmotionType = "disgust"      // Отвращение — низкий Pleasure, средний Arousal
 	EmotionTrust        EmotionType = "trust"        // Доверие — социальная эмоция, укрепляет связи
-	EmotionAnticipation EmotionType = "anticipation"  // Предвкушение — средний Pleasure, средний Arousal
+	EmotionAnticipation EmotionType = "anticipation" // Предвкушение — средний Pleasure, средний Arousal
 	EmotionLoneliness   EmotionType = "loneliness"   // Одиночество — социальная, низкий Pleasure, низкий Arousal
 	EmotionPride        EmotionType = "pride"        // Гордость — самосознательная, высокий Dominance
 	EmotionShame        EmotionType = "shame"        // Стыд — самосознательная, низкий Dominance
@@ -143,15 +143,15 @@ const (
 type Mood string
 
 const (
-	MoodHappy   Mood = "happy"    // P > 0.3, A > 0.0
-	MoodSad     Mood = "sad"      // P < -0.3, A < 0.0
-	MoodAnxious Mood = "anxious"  // P < 0.0, A > 0.5, D < 0.0
-	MoodCalm    Mood = "calm"     // P > 0.0, A < -0.3
-	MoodAngry   Mood = "angry"    // P < -0.3, A > 0.3, D > 0.3
-	MoodExcited Mood = "excited"  // P > 0.3, A > 0.5
-	MoodBored   Mood = "bored"    // P ~ 0, A < -0.5
-	MoodContent Mood = "content"  // P > 0.2, A ~ 0, D > 0.0
-	MoodNeutral Mood = "neutral"  // Все оси близки к 0
+	MoodHappy   Mood = "happy"   // P > 0.3, A > 0.0
+	MoodSad     Mood = "sad"     // P < -0.3, A < 0.0
+	MoodAnxious Mood = "anxious" // P < 0.0, A > 0.5, D < 0.0
+	MoodCalm    Mood = "calm"    // P > 0.0, A < -0.3
+	MoodAngry   Mood = "angry"   // P < -0.3, A > 0.3, D > 0.3
+	MoodExcited Mood = "excited" // P > 0.3, A > 0.5
+	MoodBored   Mood = "bored"   // P ~ 0, A < -0.5
+	MoodContent Mood = "content" // P > 0.2, A ~ 0, D > 0.0
+	MoodNeutral Mood = "neutral" // Все оси близки к 0
 )
 
 // -----------------------------------------------------------------------------

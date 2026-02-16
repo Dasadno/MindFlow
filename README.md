@@ -401,3 +401,6 @@ All errors follow this format:
 | 404 | `NOT_FOUND` | Agent/event/relationship not found |
 | 429 | `RATE_LIMITED` | Too many requests |
 | 500 | `INTERNAL_ERROR` | Server error (details hidden in production) |
+
+
+# Client side of the project 
