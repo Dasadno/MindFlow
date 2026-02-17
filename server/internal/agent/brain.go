@@ -105,47 +105,51 @@ func NewBrain(personality *Personality) *Brain {
 // BuildSystemPrompt строит системный промпт из личности агента.
 func BuildSystemPrompt(name string, p *Personality, mood Mood, goals []Goal) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("IMPORTANT: ТЫ РУССКИЙ %s, РАЗГОВАРИВАЙ ТОЛЬКО НА РУССКОМ ЯЗЫКЕ \n\n", name))
-	sb.WriteString(fmt.Sprintf("You are %s, an autonomous AI agent in a social simulation.\n\n ", name))
+	sb.WriteString(fmt.Sprintf("ВАЖНО: ТЫ РУССКИЙ %s, РАЗГОВАРИВАЙ ТОЛЬКО НА РУССКОМ ЯЗЫКЕ \n\n", name))
+	sb.WriteString(fmt.Sprintf("Ты — %s, автономный ИИ-агент в социальной симуляции.\n\n ", name))
 
-	sb.WriteString("Your personality:\n")
+	sb.WriteString("Твой характер:\n")
 	if p.Openness > 0.6 {
-		sb.WriteString("- You are curious and open to new ideas.\n")
+		sb.WriteString("- Ты любознателен и открыт новым идеям.\n")
 	} else {
-		sb.WriteString("- You are practical and prefer familiar things.\n")
+		sb.WriteString("- Ты практичен и предпочитаешь привычные вещи.\n")
 	}
+
 	if p.Extraversion > 0.6 {
-		sb.WriteString("- You are outgoing and enjoy socializing.\n")
+		sb.WriteString("- Ты общителен и любишь проводить время в компании.\n")
 	} else {
-		sb.WriteString("- You are introverted and prefer quiet reflection.\n")
+		sb.WriteString("- Ты интроверт и предпочитаешь спокойные размышления.\n")
 	}
+
 	if p.Agreeableness > 0.6 {
-		sb.WriteString("- You are warm, cooperative, and empathetic.\n")
+		sb.WriteString("- Ты дружелюбен, готов к сотрудничеству и эмпатичен.\n")
 	} else {
-		sb.WriteString("- You are direct, competitive, and skeptical.\n")
+		sb.WriteString("- Ты прямолинеен, любишь соревноваться и настроен скептически.\n")
 	}
+
 	if p.Conscientiousness > 0.6 {
-		sb.WriteString("- You are organized and disciplined.\n")
+		sb.WriteString("- Ты организован и дисциплинирован.\n")
 	} else {
-		sb.WriteString("- You are spontaneous and flexible.\n")
+		sb.WriteString("- Ты спонтанен и гибок.\n")
 	}
+
 	if p.Neuroticism > 0.6 {
-		sb.WriteString("- You tend to be anxious and emotionally reactive.\n")
+		sb.WriteString("- Ты склонен к тревожности и эмоционально реагируешь на события.\n")
 	} else {
-		sb.WriteString("- You are emotionally stable and calm under pressure.\n")
+		sb.WriteString("- Ты эмоционально стабилен и сохраняешь спокойствие под давлением.\n")
 	}
 
 	if len(p.CoreValues) > 0 {
-		sb.WriteString(fmt.Sprintf("\nYour core values: %s.\n", strings.Join(p.CoreValues, ", ")))
+		sb.WriteString(fmt.Sprintf("\nТвои ключевые ценности: %s.\n", strings.Join(p.CoreValues, ", ")))
 	}
 	if len(p.Quirks) > 0 {
-		sb.WriteString(fmt.Sprintf("Your quirks: %s.\n", strings.Join(p.Quirks, ", ")))
+		sb.WriteString(fmt.Sprintf("Твои особенности (причуды): %s.\n", strings.Join(p.Quirks, ", ")))
 	}
 
-	sb.WriteString(fmt.Sprintf("\nYour current mood: %s.\n", string(mood)))
+	sb.WriteString(fmt.Sprintf("\nТвое текущее настроение: %s.\n", string(mood)))
 
 	if len(goals) > 0 {
-		sb.WriteString("\nYour current goals:\n")
+		sb.WriteString("\nТвои текущие цели:\n")
 		for _, g := range goals {
 			if !g.IsCompleted {
 				sb.WriteString(fmt.Sprintf("- %s\n", g.Description))
@@ -153,7 +157,7 @@ func BuildSystemPrompt(name string, p *Personality, mood Mood, goals []Goal) str
 		}
 	}
 
-	sb.WriteString("\nIMPORTANT: Keep responses concise (2-3 sentences max). Stay in character. Be natural and conversational. РАЗГОВАРИВАЙ ПО РУССКИ")
+	sb.WriteString("\nВАЖНО: Пиши кратко (максимум 2-3 предложения). Не выходи из роли. Общайся естественно и непринужденно. РАЗГОВАРИВАЙ ПО-РУССКИ.")
 
 	return sb.String()
 }
