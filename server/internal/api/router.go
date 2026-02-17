@@ -59,7 +59,7 @@ func NewMux(h *Handler) *http.ServeMux {
 
 	// AGENTS
 	mux.HandleFunc("GET /agents", h.ListAgents)
-	mux.HandleFunc("GET /agents/{id}/memory", h.GetAgentMemories)
+	mux.HandleFunc("GET /agents/{id}/memory", TODO)
 	mux.HandleFunc("GET /agents/{id}/thoughts", TODO)
 	mux.HandleFunc("GET /agents/{id}", h.GetAgent)
 	mux.HandleFunc("POST /agents/{id}/inject", h.InjectMessage)
