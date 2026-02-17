@@ -34,19 +34,16 @@ server/
 ├── go.mod
 └── README.md
 ```
-
-## Running
-
+## Quick start (Docker)
 ```bash
-# Start Ollama with a model
-ollama run gigachat
+ollama pull gemma:4b
 
-# Run the server
-go run ./cmd/server
+docker-compose up -d 
+
+server on http://localhost:8080
+
+ollama serve 
 ```
-
-Default port: `:8080`
-
 ---
 
 ## Database Schema
