@@ -4,6 +4,7 @@ import { LoginPage } from '@/pages/auth/ui/LoginPage';
 import { ChatPage } from '@/pages/chat/ui/Page';
 import ErrorPage from '@/pages/error-page/ErrorPage';
 import RegisterPage from '@/pages/auth/ui/RegisterPage';
+import { ProtectedRoute } from './ProtectedRoute';
 
 const router = createBrowserRouter([
     {
@@ -15,16 +16,21 @@ const router = createBrowserRouter([
         element: <LoginPage />,
     },
     {
-        path: '/chat',
-        element: <ChatPage />,
+        path: '/register',
+        element: <RegisterPage />,
+    },
+    {
+        element: <ProtectedRoute />,
+        children: [
+            {
+                path: '/chat',
+                element: <ChatPage />,
+            },
+        ],
     },
     {
         path: '*',
         element: <ErrorPage />,
-    },
-    {
-        path: '/register',
-        element: <RegisterPage />,
     }
 ]);
 
