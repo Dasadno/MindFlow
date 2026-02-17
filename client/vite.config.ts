@@ -18,15 +18,39 @@ export default defineConfig({
       '@': '/src'
     }
   },
+  server: {
+    proxy: {
+      '/agents': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/relationships': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/events': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/world': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/control': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     projects: [{
       extends: true,
       plugins: [
-      // The plugin will run tests for the stories defined in your Storybook config
-      // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
-      storybookTest({
-        configDir: path.join(dirname, '.storybook')
-      })],
+        // The plugin will run tests for the stories defined in your Storybook config
+        // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
+        storybookTest({
+          configDir: path.join(dirname, '.storybook')
+        })],
       test: {
         name: 'storybook',
         browser: {
