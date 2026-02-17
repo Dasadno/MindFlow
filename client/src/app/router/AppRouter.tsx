@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { HomePage } from '@/pages/home/ui/Page';
 import { LoginPage } from '@/pages/auth/ui/LoginPage';
 import { ChatPage } from '@/pages/chat/ui/Page';
+import ErrorPage from '@/pages/error-page/ErrorPage';
 
 const router = createBrowserRouter([
     {
@@ -15,6 +16,10 @@ const router = createBrowserRouter([
     {
         path: '/chat',
         element: <ChatPage />,
+    },
+    {
+        path: '*',
+        element: <ErrorPage />,
     },
 ]);
 

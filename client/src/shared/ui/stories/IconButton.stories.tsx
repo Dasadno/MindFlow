@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Settings, User, Bell, Search } from 'lucide-react';
-import { IconButton } from './IconButton.tsx';
+import { IconButton } from '@/shared/ui/IconButton';
 
 const meta: Meta<typeof IconButton> = {
     title: 'Shared/IconButton',
@@ -13,7 +13,7 @@ type Story = StoryObj<typeof IconButton>;
 
 export const SettingsIcon: Story = {
     args: {
-    icon: Settings,
+        icon: Settings,
     },
 };
 
