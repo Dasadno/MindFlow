@@ -1,21 +1,29 @@
-/**
- * MessageInput - Поле ввода сообщения
- * 
- * Этот компонент отображает:
- * - Текстовое поле для ввода сообщения
- * - Кнопку отправки
- * - Индикатор количества символов (опционально)
- * 
- * TODO для декомпозиции:
- * - Добавить поддержку multiline (textarea)
- * - Добавить кнопки для прикрепления файлов
- * - Добавить эмодзи-пикер
- * - Добавить автозаполнение
- */
-
+import { useState, type KeyboardEvent } from 'react';
 import { Send } from 'lucide-react';
 
-export const MessageInput = () => {
+interface MessageInputProps {
+    onSendMessage: (content: string) => void;
+    disabled?: boolean;
+}
+
+export const MessageInput = ({ onSendMessage, disabled }: MessageInputProps) => {
+    const [input, setInput] = useState('');
+
+    const handleSend = (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (!input.trim() || disabled) return;
+
+        onSendMessage(input);
+        setInput('');
+    };
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent newline
+            handleSend();
+        }
+    };
+
     return (
         <div className="
             /* Контейнер для поля ввода */
@@ -29,12 +37,16 @@ export const MessageInput = () => {
             <form className="
                 flex items-end gap-3
                 max-w-4xl mx-auto
-            ">
+            " onSubmit={handleSend}>
                 {/* ТЕКСТОВОЕ ПОЛЕ */}
                 <div className="flex-1">
                     <textarea
-                        placeholder="Type your message to Alice..."
+                        placeholder={disabled ? "Select an agent to chat..." : "Type your message..."}
                         rows={1}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        disabled={disabled}
                         className="
                             /* Базовые стили */
                             w-full
@@ -61,6 +73,10 @@ export const MessageInput = () => {
                             
                             /* Скроллбар */
                             scrollbar-thin scrollbar-thumb-bright-turquoise/30 scrollbar-track-transparent
+
+                            /* Disabled */
+                            disabled:opacity-50
+                            disabled:cursor-not-allowed
                         "
                     />
                 </div>
@@ -68,6 +84,7 @@ export const MessageInput = () => {
                 {/* КНОПКА ОТПРАВКИ */}
                 <button
                     type="submit"
+                    disabled={disabled || !input.trim()}
                     className="
                         /* Базовые стили */
                         px-4 py-3
@@ -106,14 +123,6 @@ export const MessageInput = () => {
                     </span>
                 </button>
             </form>
-
-            {/* ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ (опционально) */}
-            {/* 
-            <div className="mt-2 flex justify-between items-center text-xs text-text-secondary/70">
-                <span>Press Enter to send, Shift+Enter for new line</span>
-                <span>0 / 500</span>
-            </div>
-            */}
         </div>
     );
 };

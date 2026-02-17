@@ -5,6 +5,15 @@ const meta: Meta<typeof Input> = {
     title: 'Shared/Input',
     component: Input,
     tags: ['autodocs'],
+    decorators: [
+        (Story) => (
+            <div className="p-10 bg-deep-midnight min-h-[200px] flex items-center justify-center">
+                <div className="w-full max-w-md">
+                    <Story />
+                </div>
+            </div>
+        ),
+    ],
     argTypes: {
         type: {
             control: { type: 'select' },

@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 
+
 interface IconButtonProps {
     icon: LucideIcon;
     onClick?: () => void;
@@ -39,7 +40,7 @@ export const IconButton = ({ icon: Icon, onClick, className = '' }: IconButtonPr
         >
             {/* Декоративный внутренний блик при наведении (как в Bento) */}
             <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-bright-turquoise/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            
+
             <Icon className="relative z-10 w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
         </button>
     );
