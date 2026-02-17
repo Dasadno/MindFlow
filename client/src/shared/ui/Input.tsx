@@ -1,8 +1,21 @@
-const Input = ({ children }: { children: React.ReactNode }) => {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    className?: string;
+}
+
+const Input = ({ className = '', ...props }: InputProps) => {
     return (
-        <input className="px-6 py-2 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-r from-primary to-secondary text-white">
-            {children}
-        </input>
+        <input
+            className={`
+                w-full px-6 py-3 rounded-lg font-medium outline-none
+                bg-white/5 border border-white/10
+                text-text-primary placeholder:text-text-secondary/50
+                focus:border-bright-turquoise/50 focus:bg-white/10
+                transition-all duration-300
+                shadow-sm hover:shadow-md
+                ${className}
+            `}
+            {...props}
+        />
     );
 };
 
