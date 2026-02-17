@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server/data/society.db:/app/data/society.db
+    environment:
+      - DB_PATH=/app/data/society.db
+      - ALLOWED_ORIGIN=http://localhost:8080
+
+    restart: always
