@@ -1,130 +1,210 @@
-// Package world provides the simulation orchestrator and world management.
+// Package world provides the simulation orchestrator.
 //
-// The Orchestrator is the central coordinator of the AI Agent Society simulation.
-// It manages the world tick loop, coordinates agent actions, resolves conflicts,
-// and maintains global world state. Think of it as the "game master".
+// Orchestrator — центральный координатор симуляции.
+// Каждые 15 секунд берёт двух случайных агентов и запускает диалог.
 
 package world
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
 	"sync"
 	"time"
+
+	"milk/server/internal/agent"
+	"milk/server/internal/api"
+	"milk/server/internal/storage"
+	"milk/server/pkg/llm"
 )
 
-// -----------------------------------------------------------------------------
-// Orchestrator — центральный координатор симуляции
-// -----------------------------------------------------------------------------
-// Управляет главным циклом симуляции. Каждый тик:
-//   1. TimeManager.Advance() — продвигает часы
-//   2. Собирает WorldContext для каждого агента
-//   3. Вызывает agent.Tick() для каждого активного агента (параллельно)
-//   4. resolveActions() — разрешает конфликты и сопоставляет взаимодействия
-//   5. EventBus.processEvents() — доставляет события подписчикам
-//   6. Периодические задачи (консолидация памяти, затухание эмоций)
-//   7. Сохраняет снапшоты состояния с заданным интервалом
-
+// Orchestrator — тикер диалогов между агентами.
 type Orchestrator struct {
-	// eventBus — pub-sub система для коммуникации между агентами и системой.
-	EventBus *EventBus
-
-	// timeManager — управление часами симуляции (тики, скорость, пауза).
-	TimeManager *TimeManager
-
-	// state — текущее состояние мира (тик, скорость, пауза, кол-во агентов).
-	State WorldState
-
-	// mu — RWMutex для потокобезопасного доступа к agents и state.
-	// Read-lock для GetAgent/ListAgents, write-lock для Register/Remove/Tick.
-	mu sync.RWMutex
-
-	// ctx и cancel — контекст для graceful shutdown.
-	// Stop() вызывает cancel(), завершая все горутины.
-	ctx    context.Context
-	cancel context.CancelFunc
+	repo         *storage.Repository
+	llm          *llm.Client
+	hub          *api.Hub
+	tickInterval time.Duration
+	turns        int // реплик за тик
+	currentTick  int64
+	mu           sync.Mutex
+	cancel       context.CancelFunc
 }
 
-// WorldState — глобальное состояние симуляции.
-// Сериализуется в таблицу world_state (key-value) при сохранении.
-type WorldState struct {
-	// IsPaused — на паузе ли симуляция. При запуске = true.
-	IsPaused bool
-
-	// CurrentTick — текущий тик (монотонно возрастающий счётчик).
-	CurrentTick int64
-
-	// Speed — множитель скорости симуляции.
-	// 1.0 = реальное время, 2.0 = удвоенная скорость, 0.5 = замедление.
-	Speed float64
-
-	// ActiveAgents — количество активных (is_active=true) агентов.
-	ActiveAgents int
-
-	// StartedAt — когда симуляция была запущена (для расчёта uptime).
-	StartedAt time.Time
+// NewOrchestrator создаёт Orchestrator.
+func NewOrchestrator(repo *storage.Repository, llmClient *llm.Client, hub *api.Hub) *Orchestrator {
+	return &Orchestrator{
+		repo:         repo,
+		llm:          llmClient,
+		hub:          hub,
+		tickInterval: 15 * time.Second,
+		turns:        4,
+	}
 }
 
-// -----------------------------------------------------------------------------
-// OrchestratorDeps — зависимости для создания Orchestrator
-// -----------------------------------------------------------------------------
-// Передаются в NewOrchestrator(). Dependency injection для тестируемости.
+// Start запускает фоновый тикер. Блокирует до отмены ctx.
+func (o *Orchestrator) Start(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	o.cancel = cancel
 
-type OrchestratorDeps struct {
-	// EventBus — система событий (должна быть уже инициализирована).
-	EventBus *EventBus
+	log.Println("orchestrator: started, tick interval", o.tickInterval)
 
-	// TimeManager — менеджер времени (должен быть уже инициализирован).
-	TimeManager *TimeManager
+	ticker := time.NewTicker(o.tickInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			o.mu.Lock()
+			o.currentTick++
+			tick := o.currentTick
+			o.mu.Unlock()
+
+			go o.runTick(ctx, tick)
+
+		case <-ctx.Done():
+			log.Println("orchestrator: stopped")
+			return
+		}
+	}
 }
 
-// -----------------------------------------------------------------------------
-// ActionResult — результат обработки действия агента оркестратором
-// -----------------------------------------------------------------------------
-// После resolveActions() каждое действие получает результат:
-// успех, отказ (цель занята), или модификация (конфликт разрешён компромиссом).
-
-type ActionResult struct {
-	// AgentID — ID агента, чьё действие было обработано.
-	AgentID string
-
-	// Success — выполнено ли действие.
-	Success bool
-
-	// Reason — причина отказа или модификации ("target agent is busy", "conflict resolved").
-	Reason string
-
-	// InteractionResult — результат взаимодействия (если действие было interact).
-	InteractionResult *InteractionResult
+// Stop останавливает тикер.
+func (o *Orchestrator) Stop() {
+	if o.cancel != nil {
+		o.cancel()
+	}
 }
 
-// InteractionResult — результат взаимодействия двух агентов.
-type InteractionResult struct {
-	// Agent1ID, Agent2ID — участники.
-	Agent1ID string
-	Agent2ID string
+func (o *Orchestrator) runTick(ctx context.Context, tick int64) {
+	agents, err := o.repo.GetRandomActiveAgents(2)
+	if err != nil {
+		log.Printf("orchestrator tick %d: getAgents error: %v", tick, err)
+		return
+	}
+	if len(agents) < 2 {
+		log.Printf("orchestrator tick %d: not enough agents (%d)", tick, len(agents))
+		return
+	}
 
-	// Dialogue — лог диалога (пары реплик).
-	Dialogue []DialogueTurn
-
-	// RelationshipDelta — как изменились отношения (-1.0 .. +1.0).
-	// Положительный → укрепление, отрицательный → ослабление.
-	RelationshipDelta float64
-
-	// EmotionalImpact — как взаимодействие повлияло на эмоции каждого агента.
-	EmotionalImpact map[string]string // agentID → emotion label
+	log.Printf("orchestrator tick %d: %s <-> %s", tick, agents[0].Name, agents[1].Name)
+	o.runConversation(ctx, agents[0], agents[1], tick)
 }
 
-// DialogueTurn — одна реплика в диалоге между агентами.
-type DialogueTurn struct {
-	// SpeakerID — кто говорит.
-	SpeakerID string
+func (o *Orchestrator) runConversation(
+	ctx context.Context,
+	a1, a2 storage.AgentRecord,
+	tick int64,
+) {
+	p1 := parsePersonality(a1.Personality)
+	p2 := parsePersonality(a2.Personality)
 
-	// Content — текст реплики.
-	Content string
+	brain1 := agent.NewBrain(&p1)
+	brain2 := agent.NewBrain(&p2)
 
-	// Emotion — эмоция говорящего в момент реплики.
-	Emotion string
+	mood1 := agent.MoodNeutral
+	mood2 := agent.MoodNeutral
 
-	// Timestamp — время реплики в симуляции.
-	Timestamp time.Time
+	goals1 := parseGoals(a1.Goals)
+	goals2 := parseGoals(a2.Goals)
+
+	var history1, history2 []llm.Message
+
+	// Начальное сообщение: агент 1 видит агента 2
+	opener := fmt.Sprintf(
+		"You notice %s nearby. Start a conversation naturally based on your personality and current mood.",
+		a2.Name,
+	)
+	history1 = append(history1, llm.Message{Role: "user", Content: opener})
+
+	for i := 0; i < o.turns; i++ {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		if i%2 == 0 {
+			// Ход агента 1
+			o.injectHumanMessages(&history1, a1.ID)
+
+			reply, err := brain1.Think(ctx, o.llm, a1.Name, mood1, goals1, history1)
+			if err != nil {
+				log.Printf("orchestrator: agent1 error: %v", err)
+				return
+			}
+
+			o.saveAndBroadcast(a1, a2, reply, tick)
+
+			history1 = append(history1, llm.Message{Role: "assistant", Content: reply})
+			history2 = append(history2, llm.Message{
+				Role:    "user",
+				Content: fmt.Sprintf("%s says: %s", a1.Name, reply),
+			})
+		} else {
+			// Ход агента 2
+			o.injectHumanMessages(&history2, a2.ID)
+
+			if len(history2) == 0 {
+				history2 = append(history2, llm.Message{
+					Role:    "user",
+					Content: fmt.Sprintf("%s is talking to you. Respond naturally.", a1.Name),
+				})
+			}
+
+			reply, err := brain2.Think(ctx, o.llm, a2.Name, mood2, goals2, history2)
+			if err != nil {
+				log.Printf("orchestrator: agent2 error: %v", err)
+				return
+			}
+
+			o.saveAndBroadcast(a2, a1, reply, tick)
+
+			history2 = append(history2, llm.Message{Role: "assistant", Content: reply})
+			history1 = append(history1, llm.Message{
+				Role:    "user",
+				Content: fmt.Sprintf("%s says: %s", a2.Name, reply),
+			})
+		}
+	}
+}
+
+func (o *Orchestrator) injectHumanMessages(history *[]llm.Message, agentID string) {
+	injections := o.hub.DrainInjections(agentID)
+	for _, inj := range injections {
+		*history = append(*history, llm.Message{
+			Role:    "user",
+			Content: fmt.Sprintf("[Human says to you]: %s", inj),
+		})
+	}
+}
+
+func (o *Orchestrator) saveAndBroadcast(speaker, target storage.AgentRecord, reply string, tick int64) {
+	_ = o.repo.SaveConversationEvent(speaker.ID, target.ID, reply, tick)
+	o.hub.Broadcast(api.SSEEvent{
+		Type:    "conversation",
+		Speaker: speaker.Name,
+		Target:  target.Name,
+		Content: reply,
+		AgentID: speaker.ID,
+		Tick:    tick,
+	})
+}
+
+func parsePersonality(raw string) agent.Personality {
+	var p agent.Personality
+	if raw != "" {
+		json.Unmarshal([]byte(raw), &p)
+	}
+	return p
+}
+
+func parseGoals(goals sql.NullString) []agent.Goal {
+	if !goals.Valid || goals.String == "" {
+		return nil
+	}
+	var g []agent.Goal
+	json.Unmarshal([]byte(goals.String), &g)
+	return g
 }

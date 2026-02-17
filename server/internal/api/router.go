@@ -62,7 +62,7 @@ func NewMux(h *Handler) *http.ServeMux {
 	mux.HandleFunc("GET /agents/{id}/memory", h.GetAgentMemories)
 	mux.HandleFunc("GET /agents/{id}/thoughts", TODO)
 	mux.HandleFunc("GET /agents/{id}", h.GetAgent)
-	mux.HandleFunc("POST /agents/{id}/inject", TODO)
+	mux.HandleFunc("POST /agents/{id}/inject", h.InjectMessage)
 
 	// RELATIONSHIPS
 	mux.HandleFunc("GET /relationships", TODO)
@@ -72,7 +72,7 @@ func NewMux(h *Handler) *http.ServeMux {
 	// EVENTS
 	mux.HandleFunc("GET /events", TODO)
 	mux.HandleFunc("POST /events", TODO)
-	mux.HandleFunc("GET /events/stream", TODO)
+	mux.HandleFunc("GET /events/stream", h.EventsStream)
 
 	// WORLD
 	mux.HandleFunc("GET /world/status", h.GetWorldStatus)

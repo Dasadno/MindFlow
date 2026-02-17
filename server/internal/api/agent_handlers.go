@@ -45,6 +45,7 @@ func (h *Handler) ListAgents(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetMemory - GET /agents/{id}/memory
+/*
 func (h *Handler) GetAgentMemories(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	memType := query.Get("type") // episodic | semantic | procedural
@@ -63,7 +64,7 @@ func (h *Handler) GetAgentMemories(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, memories)
 }
-
+*/
 // GetAgent — GET /agents/{id}
 func (h *Handler) GetAgent(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
