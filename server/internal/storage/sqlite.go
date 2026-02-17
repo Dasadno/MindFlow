@@ -9,6 +9,8 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // -----------------------------------------------------------------------------
@@ -349,55 +351,8 @@ func (r *Repository) CountMemoriesByAgent(agentID string) (int, error) {
 	return count, nil
 }
 
-// MemoriesByAgent возвращает массив воспоминаний агента
-func (r *Repository) MemoriesByAgent(agentId string, agentType string, limit int) ([]*MemoryRecord, error) {
-	query := `
-        SELECT 
-            id, agent_id, type, content, emotional_tag, 
-            importance, access_count, last_accessed, 
-            related_agents, metadata, created_at 
-        FROM memories 
-        WHERE agent_id = $1 AND type = $2
-		ORDER BY created_at DESC
-		LIMIT $3`
-
-	rows, err := r.DB.Query(query, agentId, agentType, limit)
-	if err != nil {
-		return nil, fmt.Errorf("database query error: %w", err)
-	}
-	defer rows.Close()
-
-	var mem []*MemoryRecord
-
-	for rows.Next() {
-		m := new(MemoryRecord)
-
-		err := rows.Scan(
-			&m.ID,
-			&m.AgentID,
-			&m.Type,
-			&m.Content,
-			&m.EmotionalTag,
-			&m.Importance,
-			&m.AccessCount,
-			&m.LastAccessed,
-			&m.RelatedAgents,
-			&m.Metadata,
-			&m.CreatedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("row scan error: %w", err)
-		}
-
-		mem = append(mem, m)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows iteration error: %w", err)
-	}
-
-	return mem, nil
-}
+// MemoriesByAgent возвращает воспоминания агента
+// func (r *Repository) MemoriesByAgent(agentId string, memType string, limit int) ([]*MemoryRecord, error)
 
 // CountRelationshipsByAgent возвращает количество связей агента.
 func (r *Repository) CountRelationshipsByAgent(agentID string) (int, error) {
@@ -455,4 +410,42 @@ func (r *Repository) GetWorldState() (map[string]string, error) {
 		state[k] = v
 	}
 	return state, rows.Err()
+}
+
+// GetRandomActiveAgents возвращает до n случайных активных агентов.
+func (r *Repository) GetRandomActiveAgents(n int) ([]AgentRecord, error) {
+	query := `SELECT id, name, personality, mood_state, goals, state, is_active, created_at, last_active, snapshot
+	          FROM agents WHERE is_active = true ORDER BY RANDOM() LIMIT ?`
+	rows, err := r.DB.Query(query, n)
+	if err != nil {
+		return nil, fmt.Errorf("GetRandomActiveAgents: %w", err)
+	}
+	defer rows.Close()
+
+	var agents []AgentRecord
+	for rows.Next() {
+		var a AgentRecord
+		if err := rows.Scan(
+			&a.ID, &a.Name, &a.Personality, &a.MoodState, &a.Goals,
+			&a.State, &a.IsActive, &a.CreatedAt, &a.LastActive, &a.Snapshot,
+		); err != nil {
+			return nil, fmt.Errorf("GetRandomActiveAgents scan: %w", err)
+		}
+		agents = append(agents, a)
+	}
+	return agents, rows.Err()
+}
+
+// SaveConversationEvent сохраняет одну реплику диалога в таблицу events.
+func (r *Repository) SaveConversationEvent(speakerID, targetID, content string, tick int64) error {
+	payload := fmt.Sprintf(`{"speakerId":%q,"targetId":%q,"content":%q}`,
+		speakerID, targetID, content)
+	affectedJSON := fmt.Sprintf(`[%q,%q]`, speakerID, targetID)
+
+	_, err := r.DB.Exec(
+		`INSERT INTO events (id, topic, type, source, affected_agents, payload, status, tick, created_at)
+		 VALUES (?, 'interaction', 'conversation', ?, ?, ?, 'completed', ?, ?)`,
+		uuid.New().String(), speakerID, affectedJSON, payload, tick, time.Now().UTC(),
+	)
+	return err
 }
