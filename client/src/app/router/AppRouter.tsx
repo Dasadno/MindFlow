@@ -3,6 +3,7 @@ import { HomePage } from '@/pages/home/ui/Page';
 import { LoginPage } from '@/pages/auth/ui/LoginPage';
 import { ChatPage } from '@/pages/chat/ui/Page';
 import ErrorPage from '@/pages/error-page/ErrorPage';
+import RegisterPage from '@/pages/auth/ui/RegisterPage';
 
 const router = createBrowserRouter([
     {
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
         path: '*',
         element: <ErrorPage />,
     },
+    {
+        path: '/register',
+        element: <RegisterPage />,
+    }
 ]);
 
 export const AppRouter = () => {

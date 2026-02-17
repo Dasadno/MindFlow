@@ -1,29 +1,15 @@
-/**
- * ChatSidebar - Боковая панель с списком агентов
- * 
- * Этот компонент отображает:
- * - Список доступных AI-агентов
- * - Индикаторы статуса (онлайн/оффлайн)
- * - Активный выбранный агент
- * 
- * TODO для декомпозиции:
- * - Вынести AgentListItem в отдельный компонент
- * - Добавить поиск по агентам
- * - Добавить фильтрацию (онлайн/все)
- */
+import type { AgentSummary } from '../shared/types';
 
-export const ChatSidebar = () => {
-    // Моковые данные агентов (потом заменить на API)
-    const agents = [
-        { id: '1', name: 'Alice', status: 'online', personality: 'Curious Explorer' },
-        { id: '2', name: 'Bob', status: 'online', personality: 'Wise Guardian' },
-        { id: '3', name: 'Charlie', status: 'offline', personality: 'Creative Dreamer' },
-    ];
+interface ChatSidebarProps {
+    agents: AgentSummary[];
+    selectedAgentId: string | null;
+    onSelectAgent: (id: string) => void;
+    className?: string; // Allow passing styles for layout
+}
 
-    const activeAgentId = '1'; // Текущий выбранный агент
-
+export const ChatSidebar = ({ agents, selectedAgentId, onSelectAgent, className }: ChatSidebarProps) => {
     return (
-        <aside className="
+        <aside className={`
             /* Базовые стили сайдбара */
             w-full md:w-80 
             bg-dark-ocean 
@@ -31,7 +17,8 @@ export const ChatSidebar = () => {
             flex flex-col
             /* Адаптивность: на мобилке скрывается или показывается через меню */
             h-auto md:h-screen
-        ">
+            ${className || ''}
+        `}>
             {/* HEADER САЙДБАРА */}
             <div className="
                 p-4 
@@ -53,9 +40,21 @@ export const ChatSidebar = () => {
                 /* Кастомный скроллбар */
                 scrollbar-thin scrollbar-thumb-bright-turquoise/30 scrollbar-track-transparent
             ">
+                <div
+                    onClick={() => onSelectAgent('')}
+                    className={`
+                        p-4 cursor-pointer transition-all border-l-4 hover:bg-deep-midnight/50
+                        ${!selectedAgentId ? 'border-bright-turquoise bg-deep-midnight/30' : 'border-transparent'}
+                    `}
+                >
+                    <h3 className="text-text-primary font-semibold">Global Stream</h3>
+                    <p className="text-text-secondary text-sm">View all interactions</p>
+                </div>
+
                 {agents.map((agent) => (
                     <div
                         key={agent.id}
+                        onClick={() => onSelectAgent(agent.id)}
                         className={`
                             /* Базовые стили элемента списка */
                             p-4 
@@ -65,7 +64,7 @@ export const ChatSidebar = () => {
                             hover:bg-deep-midnight/50
                             
                             /* Активный агент выделяется */
-                            ${agent.id === activeAgentId
+                            ${agent.id === selectedAgentId
                                 ? 'border-bright-turquoise bg-deep-midnight/30'
                                 : 'border-transparent'
                             }
@@ -82,20 +81,20 @@ export const ChatSidebar = () => {
                             <div className="flex items-center gap-2">
                                 <div className={`
                                     w-2 h-2 rounded-full
-                                    ${agent.status === 'online'
+                                    ${agent.isActive
                                         ? 'bg-light-mint animate-pulse'
                                         : 'bg-text-secondary/50'
                                     }
                                 `} />
                                 <span className="text-text-secondary text-xs">
-                                    {agent.status}
+                                    {agent.isActive ? 'online' : 'offline'}
                                 </span>
                             </div>
                         </div>
 
                         {/* НИЖНЯЯ ЧАСТЬ: Тип личности */}
                         <p className="text-text-secondary text-sm">
-                            {agent.personality}
+                            {agent.personalityType}
                         </p>
                     </div>
                 ))}
