@@ -1,6 +1,7 @@
 import type { Agent, AgentSummary, Event } from '../types';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = ''; // Use relative path for proxy
+
 
 export const chatApi = {
     getAgents: async (): Promise<{ agents: AgentSummary[] }> => {

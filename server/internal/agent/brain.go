@@ -17,7 +17,7 @@ import (
 // LLMClient — интерфейс LLM-клиента для Brain.
 // Позволяет подменить реальный клиент на мок в тестах.
 type LLMClient interface {
-	Complete(req llm.CompletionRequest) (llm.CompletionResponse, error)
+	Complete(ctx context.Context, req llm.CompletionRequest) (llm.CompletionResponse, error)
 }
 
 // Brain — когнитивное ядро агента, обёртка над LLM.
@@ -92,12 +92,12 @@ func NewBrain(personality *Personality) *Brain {
 	creativity := 0.5 + personality.Openness*0.5 // 0.5–1.0
 	return &Brain{
 		Personality:   personality,
-		ThoughtBuffer: make([]Thought, 0, 10),
-		ThoughtStream: make(chan Thought, 32),
+		ThoughtBuffer: make([]Thought, 0, 5),
+		ThoughtStream: make(chan Thought, 16),
 		Config: BrainConfig{
-			MaxThoughts:      10,
+			MaxThoughts:      5,
 			CreativityFactor: creativity,
-			ResponseTimeout:  60 * time.Second,
+			ResponseTimeout:  5 * time.Minute,
 		},
 	}
 }
@@ -179,7 +179,7 @@ func (b *Brain) Think(
 		req.Temperature = &t
 	}
 
-	resp, err := client.Complete(req)
+	resp, err := client.Complete(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("Brain.Think: %w", err)
 	}

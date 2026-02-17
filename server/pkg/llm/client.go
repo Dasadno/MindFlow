@@ -7,6 +7,7 @@ package llm
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,6 +17,8 @@ import (
 
 // Client — HTTP-клиент для Ollama API.
 type Client struct {
+	// Semaphore
+	sem chan struct{}
 	// BaseURL — endpoint Ollama сервера (default: http://localhost:11434).
 	BaseURL string
 
@@ -87,15 +90,16 @@ func NewClient() *Client {
 		model = "gemma3:4b"
 	}
 	return &Client{
+		sem:     make(chan struct{}, 4),
 		BaseURL: baseURL,
 		Model:   model,
 		HTTPClient: &http.Client{
-			Timeout: 60 * time.Second,
+			Timeout: 5 * time.Minute,
 		},
 		Config: ClientConfig{
 			DefaultTemperature: 0.7,
 			MaxTokens:          512,
-			Timeout:            60 * time.Second,
+			Timeout:            5 * time.Minute,
 		},
 	}
 }
@@ -118,7 +122,9 @@ type ollamaChatResponse struct {
 }
 
 // Complete отправляет запрос в Ollama и возвращает ответ.
-func (c *Client) Complete(req CompletionRequest) (CompletionResponse, error) {
+func (c *Client) Complete(ctx context.Context, req CompletionRequest) (CompletionResponse, error) {
+	c.sem <- struct{}{} // with semaphore
+	defer func() { <-c.sem }()
 	start := time.Now()
 
 	messages := req.Messages
@@ -143,12 +149,17 @@ func (c *Client) Complete(req CompletionRequest) (CompletionResponse, error) {
 		return CompletionResponse{}, fmt.Errorf("Complete marshal: %w", err)
 	}
 
-	resp, err := c.HTTPClient.Post(
-		c.BaseURL+"/api/chat",
-		"application/json",
-		bytes.NewReader(data),
-	)
+	// 1. Создаем запрос с поддержкой контекста
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", c.BaseURL+"/api/chat", bytes.NewReader(data))
 	if err != nil {
+		return CompletionResponse{}, fmt.Errorf("Complete create request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	// 2. Отправляем через Do вместо Post
+	resp, err := c.HTTPClient.Do(httpReq)
+	if err != nil {
+		// Здесь теперь будут ловиться таймауты: "context deadline exceeded"
 		return CompletionResponse{}, fmt.Errorf("Complete http: %w", err)
 	}
 	defer resp.Body.Close()

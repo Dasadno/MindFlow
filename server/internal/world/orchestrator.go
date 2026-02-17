@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -38,7 +39,7 @@ func NewOrchestrator(repo *storage.Repository, llmClient *llm.Client, hub *api.H
 		repo:         repo,
 		llm:          llmClient,
 		hub:          hub,
-		tickInterval: 15 * time.Second,
+		tickInterval: 22 * time.Second,
 		turns:        4,
 	}
 }
@@ -52,6 +53,13 @@ func (o *Orchestrator) Start(ctx context.Context) {
 
 	ticker := time.NewTicker(o.tickInterval)
 	defer ticker.Stop()
+
+	o.mu.Lock()
+	o.currentTick++
+	tick := o.currentTick
+	o.mu.Unlock()
+
+	go o.runTick(ctx, tick)
 
 	for {
 		select {
@@ -121,6 +129,7 @@ func (o *Orchestrator) runConversation(
 	for i := 0; i < o.turns; i++ {
 		select {
 		case <-ctx.Done():
+			log.Println("orchestrator: conversation canceled")
 			return
 		default:
 		}
@@ -131,10 +140,13 @@ func (o *Orchestrator) runConversation(
 
 			reply, err := brain1.Think(ctx, o.llm, a1.Name, mood1, goals1, history1)
 			if err != nil {
-				log.Printf("orchestrator: agent1 error: %v", err)
-				return
+				if errors.Is(err, context.DeadlineExceeded) {
+					log.Printf("orchestrator: agent1 timed out (Ollama is too slow)")
+				} else {
+					log.Printf("orchestrator: agent1 error: %v", err)
+				}
+				return // Выходим из диалога при любой ошибке LLM
 			}
-
 			o.saveAndBroadcast(a1, a2, reply, tick)
 
 			history1 = append(history1, llm.Message{Role: "assistant", Content: reply})
@@ -155,10 +167,13 @@ func (o *Orchestrator) runConversation(
 
 			reply, err := brain2.Think(ctx, o.llm, a2.Name, mood2, goals2, history2)
 			if err != nil {
-				log.Printf("orchestrator: agent2 error: %v", err)
-				return
+				if errors.Is(err, context.DeadlineExceeded) {
+					log.Printf("orchestrator: agent1 timed out (Ollama is too slow)")
+				} else {
+					log.Printf("orchestrator: agent1 error: %v", err)
+				}
+				return // Выходим из диалога при любой ошибке LLM
 			}
-
 			o.saveAndBroadcast(a2, a1, reply, tick)
 
 			history2 = append(history2, llm.Message{Role: "assistant", Content: reply})
