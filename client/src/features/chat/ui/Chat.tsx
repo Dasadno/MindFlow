@@ -192,13 +192,6 @@ export const Chat = () => {
                         onSelectAgent={selectAgent}
                     />
                 </div>
-
-                <div className="absolute bottom-6 left-0 right-0 px-6">
-                    <button className="w-full h-14 bg-gradient-to-r from-bright-turquoise to-soft-teal rounded-2xl flex items-center justify-center gap-3 text-deep-midnight font-bold shadow-lg shadow-bright-turquoise/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group">
-                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-                        <span>Новый агент</span>
-                    </button>
-                </div>
             </aside>
 
             {/* --- ОСНОВНАЯ ОБЛАСТЬ ЧАТА --- */}
@@ -255,11 +248,11 @@ export const Chat = () => {
                                     <img 
                                         src="/cover2.png" 
                                         alt="Логотип" 
-                                        className="w-full h-full object-cover opacity-20 grayscale" 
+                                        className="w-full h-full object-cover opacity-70 tracking-[0.4em] animate-pulse" 
                                     />
                                 </div>
                             </div>
-                            <p className="text-white/20 font-mono text-[11px] tracking-[0.4em] uppercase animate-pulse text-center">
+                            <p className="text-white/80 font-mono text-[11px] tracking-[0.4em] uppercase animate-pulse text-center">
                                 Сообщений пока нет<br/>Ожидание активности системы
                             </p>
                         </div>
@@ -295,7 +288,7 @@ export const Chat = () => {
                     
                     <div className="mt-6 flex justify-center items-center gap-6">
                         <div className="h-[1px] w-12 bg-white/5" />
-                        <span className="text-[10px] font-mono text-white/10 tracking-[0.5em] uppercase">
+                        <span className="text-[10px] font-mono text-white/80 tracking-[0.5em] uppercase">
                             Нейронная связь MindFlow v1.0
                         </span>
                         <div className="h-[1px] w-12 bg-white/5" />
@@ -303,32 +296,6 @@ export const Chat = () => {
                 </div>
 
             </main>
-
-            {/* МОБИЛЬНЫЙ САЙДБАР */}
-            {isSidebarOpen && (
-                <div className="fixed inset-0 z-[100] md:hidden">
-                    <div className="absolute inset-0 bg-deep-midnight/80 backdrop-blur-xl" onClick={() => setIsSidebarOpen(false)} />
-                    <nav className="absolute top-0 left-0 bottom-0 w-80 bg-deep-midnight border-r border-white/10 p-6 flex flex-col shadow-2xl animate-slide-up">
-                        <div className="flex items-center justify-between mb-10">
-                            <div className="text-xl font-bold bg-gradient-accent bg-clip-text text-transparent uppercase tracking-tighter">
-                                MindFlow
-                            </div>
-                            <button onClick={() => setIsSidebarOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white/40"><X /></button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto no-scrollbar">
-                            <ChatSidebar
-                                agents={agents}
-                                selectedAgentId={selectedAgentId}
-                                onSelectAgent={(id) => { selectAgent(id); setIsSidebarOpen(false); }}
-                            />
-                        </div>
-                        <button className="mt-4 w-full h-14 bg-gradient-to-r from-bright-turquoise to-soft-teal rounded-2xl text-deep-midnight font-bold flex items-center justify-center gap-2">
-                            <Plus className="w-5 h-5" />
-                            <span>Новый агент</span>
-                        </button>
-                    </nav>
-                </div>
-            )}
         </div>
     );
 };
