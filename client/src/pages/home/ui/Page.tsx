@@ -21,11 +21,11 @@ export const HomePage = () => {
       {/* --- Header / Nav --- */}
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl z-50 backdrop-blur-xl bg-deep-midnight/40 border border-white/10 rounded-2xl px-8 py-4 flex justify-between items-center shadow-2xl">
         <div className="flex items-center gap-4 cursor-pointer select-none group">
-            {/* <img 
-            src="./assets/cover.png" 
+            <img 
+            src="/cover2.png" 
             alt="MindFlow Logo" 
-            className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-[0_0_10px_rgba(38,208,206,0.5)] group-hover:shadow-[0_0_20px_rgba(38,208,206,0.8)] transition-all duration-300"
-            /> */}
+            className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-[0_0_10px_rgba(38,208,206,0.5)] group-hover:shadow-[0_0_20px_rgba(38,208,206,0.8)] transition-all duration-300 "
+            />
 
             <div className="text-xl font-bold bg-gradient-accent bg-clip-text text-transparent tracking-tighter uppercase text-white">
             MindFlow
