@@ -102,7 +102,7 @@
 
 
 import { useState, useEffect } from 'react';
-import { Menu, X, Send, MoreVertical, Plus } from 'lucide-react'; // Добавил Plus
+import { Menu, X, Send, MoreVertical, Plus } from 'lucide-react';
 import { useChatStore } from '../model/store';
 import { ChatSidebar, MessageList } from '../../../widgets';
 import { Button } from '@/shared/ui/Button';
@@ -142,7 +142,7 @@ export const Chat = () => {
     return (
         <div className="flex h-screen overflow-hidden bg-deep-midnight relative selection:bg-bright-turquoise/30 selection:text-white font-sans">
             
-            {/* --- Расширенные анимации и стили --- */}
+            {/* --- Глобальные стили для скрытия скроллбаров --- */}
             <style>{`
                 @keyframes float {
                     0%, 100% { transform: translateY(0px); opacity: 0.3; }
@@ -153,16 +153,14 @@ export const Chat = () => {
                     to { opacity: 1; transform: translateY(0); }
                 }
                 .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+                
+                /* Скрываем скроллбары для всех браузеров */
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
                 
                 .glass-panel {
                     background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
                     backdrop-filter: blur(20px);
-                }
-
-                .sidebar-block-transition {
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 }
             `}</style>
 
@@ -178,7 +176,7 @@ export const Chat = () => {
                     <div className="flex items-center gap-3 group transition-transform duration-300 hover:scale-[1.02]">
                         <img 
                             src="/cover2.png" 
-                            alt="Logo" 
+                            alt="Логотип" 
                             className="w-10 h-10 rounded-2xl object-cover shadow-[0_0_20px_rgba(38,208,206,0.3)]" 
                         />
                         <div className="text-xl font-bold bg-gradient-accent bg-clip-text text-transparent tracking-tighter uppercase text-white">
@@ -187,7 +185,6 @@ export const Chat = () => {
                     </div>
                 </div>
 
-                {/* Список агентов с плавным скроллом */}
                 <div className="flex-1 overflow-y-auto no-scrollbar px-4 space-y-2 pb-24">
                     <ChatSidebar
                         agents={agents}
@@ -196,7 +193,6 @@ export const Chat = () => {
                     />
                 </div>
 
-                {/* Плавающая кнопка создания агента */}
                 <div className="absolute bottom-6 left-0 right-0 px-6">
                     <button className="w-full h-14 bg-gradient-to-r from-bright-turquoise to-soft-teal rounded-2xl flex items-center justify-center gap-3 text-deep-midnight font-bold shadow-lg shadow-bright-turquoise/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group">
                         <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
@@ -233,39 +229,38 @@ export const Chat = () => {
                                     {currentAgent ? currentAgent.name : 'Системный поток'}
                                 </h1>
                                 <span className="text-[10px] uppercase tracking-[0.2em] text-bright-turquoise/60 font-medium">
-                                    {currentAgent?.isActive ? 'Соединение активно' : 'Ожидание канала связи'}
+                                    {currentAgent?.isActive ? 'Соединение активно' : 'Ожидание выбора агента'}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Кнопка "Три точки" с анимацией */}
                     <button className="w-11 h-11 flex items-center justify-center rounded-2xl text-white/40 hover:text-white hover:bg-white/10 hover:scale-110 active:scale-90 transition-all duration-200 border border-transparent hover:border-white/10">
                         <MoreVertical className="w-5 h-5" />
                     </button>
                 </header>
 
                 {/* ОБЛАСТЬ СООБЩЕНИЙ */}
-                <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth px-6 py-10 flex flex-col gap-6">
-                    <MessageList messages={messages} />
-                    
-                    {/* Пустое состояние (Логотип на весь квадратик) */}
-                    {messages.length === 0 && (
-                        <div className="flex-1 flex flex-col items-center justify-center">
+                <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth px-6 py-10 flex flex-col relative">
+                    {messages.length > 0 ? (
+                        <div className="flex flex-col gap-6">
+                            <MessageList messages={messages} />
+                        </div>
+                    ) : (
+                        /* Пустое состояние зафиксировано по центру и не мешает скроллу */
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                             <div className="group relative">
-                                {/* Светящийся фон для логотипа */}
-                                <div className="absolute inset-0 bg-bright-turquoise/20 blur-3xl rounded-full scale-0 group-hover:scale-100 transition-transform duration-700" />
-                                
+                                <div className="absolute inset-0 bg-bright-turquoise/10 blur-3xl rounded-full scale-150 transition-transform duration-700" />
                                 <div className="w-32 h-32 rounded-[40px] bg-white/[0.03] flex items-center justify-center mb-6 border border-white/5 overflow-hidden relative z-10">
                                     <img 
                                         src="/cover2.png" 
-                                        alt="Logo" 
-                                        className="w-full h-full object-cover opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" 
+                                        alt="Логотип" 
+                                        className="w-full h-full object-cover opacity-20 grayscale" 
                                     />
                                 </div>
                             </div>
-                            <p className="text-white/20 font-mono text-[11px] tracking-[0.4em] uppercase animate-pulse">
-                                Система готова к вводу
+                            <p className="text-white/20 font-mono text-[11px] tracking-[0.4em] uppercase animate-pulse text-center">
+                                Сообщений пока нет<br/>Ожидание активности системы
                             </p>
                         </div>
                     )}
@@ -275,7 +270,8 @@ export const Chat = () => {
                 <div className="p-6 md:p-10 bg-gradient-to-t from-deep-midnight via-deep-midnight/90 to-transparent">
                     <form 
                         onSubmit={handleSend} 
-                        className="max-w-4xl mx-auto flex items-end gap-3 p-2 rounded-[32px] bg-white/[0.03] border border-white/5 backdrop-blur-3xl focus-within:border-bright-turquoise/30 transition-all duration-500 shadow-2xl"
+
+                        className="max-w-4xl mx-auto flex items-center gap-3 p-2 rounded-[32px] bg-white/[0.03] border border-white/5 backdrop-blur-3xl focus-within:border-bright-turquoise/30 transition-all duration-500 shadow-2xl"
                     >
                         <div className="flex-1">
                             <Input
@@ -290,7 +286,7 @@ export const Chat = () => {
                         <Button
                             variant="gradient"
                             type="submit"
-                            className="h-14 px-8 rounded-3xl flex items-center justify-center gap-3 group overflow-hidden relative active:scale-95 transition-transform"
+                            className="h-14 px-8 rounded-3xl flex items-center justify-center gap-3 group overflow-hidden relative active:scale-95 transition-transform shrink-0"
                         >
                             <span className="hidden md:inline font-bold tracking-tighter uppercase text-sm">Отправить</span>
                             <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -328,7 +324,7 @@ export const Chat = () => {
                         </div>
                         <button className="mt-4 w-full h-14 bg-gradient-to-r from-bright-turquoise to-soft-teal rounded-2xl text-deep-midnight font-bold flex items-center justify-center gap-2">
                             <Plus className="w-5 h-5" />
-                            <span>Создать агента</span>
+                            <span>Новый агент</span>
                         </button>
                     </nav>
                 </div>
