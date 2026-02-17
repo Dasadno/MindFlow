@@ -23,8 +23,8 @@ export const LoginPage = () => {
             <main className="relative z-10 w-full max-w-[440px] animate-container">
                 <div className="bg-white/[0.03] border border-white/10 backdrop-blur-3xl p-10 md:p-14 rounded-[3rem] shadow-[0_25px_50px_rgba(0,0,0,0.4)]">
                     
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl font-black mb-3 bg-gradient-to-r from-bright-turquoise to-light-mint bg-clip-text text-transparent tracking-tight">
+                    <div className="text-center mb-14">
+                        <h1 className="text-4xl font-black pb-2 bg-gradient-to-r from-bright-turquoise to-light-mint bg-clip-text text-transparent tracking-tight leading-tight">
                             Вход в систему
                         </h1>
                     </div>
@@ -32,7 +32,6 @@ export const LoginPage = () => {
                     <LoginForm />
 
                     <div className="mt-12 text-center">
-                        {/* Изменил text-xs на text-base (16px) и убрал font-mono для лучшей читаемости */}
                         <button 
                             onClick={() => navigate('/register')}
                             className="text-base font-medium text-white/70 hover:text-bright-turquoise transition-all duration-300 group"
