@@ -57,12 +57,12 @@ type Agent struct {
 type AgentState string
 
 const (
-	StateIdle         AgentState = "idle"         // Бездействует, ожидает следующего тика
-	StateThinking     AgentState = "thinking"     // Обрабатывает когнитивный цикл (LLM-вызов)
-	StateActing       AgentState = "acting"       // Выполняет выбранное действие
-	StateInteracting  AgentState = "interacting"  // Ведёт диалог с другим агентом
-	StateReflecting   AgentState = "reflecting"   // Проводит мета-когнитивную рефлексию
-	StateSleeping     AgentState = "sleeping"     // «Спит» — период консолидации памяти
+	StateIdle        AgentState = "idle"        // Бездействует, ожидает следующего тика
+	StateThinking    AgentState = "thinking"    // Обрабатывает когнитивный цикл (LLM-вызов)
+	StateActing      AgentState = "acting"      // Выполняет выбранное действие
+	StateInteracting AgentState = "interacting" // Ведёт диалог с другим агентом
+	StateReflecting  AgentState = "reflecting"  // Проводит мета-когнитивную рефлексию
+	StateSleeping    AgentState = "sleeping"    // «Спит» — период консолидации памяти
 )
 
 // -----------------------------------------------------------------------------
@@ -194,22 +194,22 @@ type AgentAction struct {
 type ActionType string
 
 const (
-	ActionIdle      ActionType = "idle"      // Ничего не делать
-	ActionThink     ActionType = "think"     // Внутреннее размышление
-	ActionInteract  ActionType = "interact"  // Начать взаимодействие с другим агентом
-	ActionExplore   ActionType = "explore"   // Исследовать окружение
-	ActionReflect   ActionType = "reflect"   // Провести рефлексию
+	ActionIdle     ActionType = "idle"     // Ничего не делать
+	ActionThink    ActionType = "think"    // Внутреннее размышление
+	ActionInteract ActionType = "interact" // Начать взаимодействие с другим агентом
+	ActionExplore  ActionType = "explore"  // Исследовать окружение
+	ActionReflect  ActionType = "reflect"  // Провести рефлексию
 )
 
 // InteractionIntent — намерение агента при инициации взаимодействия.
 type InteractionIntent string
 
 const (
-	IntentChat      InteractionIntent = "chat"      // Дружеский разговор
-	IntentDebate    InteractionIntent = "debate"    // Спор, обсуждение
-	IntentHelp      InteractionIntent = "help"      // Предложить помощь
-	IntentAsk       InteractionIntent = "ask"       // Попросить о чём-то
-	IntentConflict  InteractionIntent = "conflict"  // Конфликт, конфронтация
+	IntentChat     InteractionIntent = "chat"     // Дружеский разговор
+	IntentDebate   InteractionIntent = "debate"   // Спор, обсуждение
+	IntentHelp     InteractionIntent = "help"     // Предложить помощь
+	IntentAsk      InteractionIntent = "ask"      // Попросить о чём-то
+	IntentConflict InteractionIntent = "conflict" // Конфликт, конфронтация
 )
 
 // -----------------------------------------------------------------------------

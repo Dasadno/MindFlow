@@ -7,6 +7,7 @@ package storage
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -138,8 +139,8 @@ type GraphNode struct {
 // GraphEdge — ребро графа (связь).
 type GraphEdge struct {
 	Source   string
-	Target  string
-	Type    string
+	Target   string
+	Type     string
 	Strength float64
 }
 
@@ -228,4 +229,230 @@ type EventFilter struct {
 
 	// Limit — максимальное количество результатов.
 	Limit int
+}
+
+// NewRepository создаёт Repository поверх существующего *sql.DB.
+func NewRepository(db *sql.DB) *Repository {
+	return &Repository{DB: db}
+}
+
+// ListAgents возвращает страницу агентов и их общее количество.
+// filter.Page начинается с 1. filter.Limit = 0 → 20 по умолчанию.
+func (r *Repository) ListAgents(filter AgentFilter) ([]AgentRecord, int, error) {
+	limit := filter.Limit
+	if limit <= 0 {
+		limit = 20
+	}
+	page := filter.Page
+	if page <= 0 {
+		page = 1
+	}
+	offset := (page - 1) * limit
+
+	where := "WHERE 1=1"
+	args := []any{}
+	if filter.IsActive != nil {
+		where += " AND is_active = ?"
+		args = append(args, *filter.IsActive)
+	}
+	if filter.State != "" {
+		where += " AND state = ?"
+		args = append(args, filter.State)
+	}
+
+	var total int
+	row := r.DB.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM agents %s", where), args...)
+	if err := row.Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("ListAgents count: %w", err)
+	}
+
+	query := fmt.Sprintf(
+		`SELECT id, name, personality, mood_state, goals, state, is_active, created_at, last_active, snapshot
+		 FROM agents %s ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		where,
+	)
+	args = append(args, limit, offset)
+
+	rows, err := r.DB.Query(query, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("ListAgents query: %w", err)
+	}
+	defer rows.Close()
+
+	var agents []AgentRecord
+	for rows.Next() {
+		var a AgentRecord
+		if err := rows.Scan(
+			&a.ID, &a.Name, &a.Personality, &a.MoodState, &a.Goals,
+			&a.State, &a.IsActive, &a.CreatedAt, &a.LastActive, &a.Snapshot,
+		); err != nil {
+			return nil, 0, fmt.Errorf("ListAgents scan: %w", err)
+		}
+		agents = append(agents, a)
+	}
+	return agents, total, rows.Err()
+}
+
+// GetAgentByID возвращает агента по UUID. Если не найден — (nil, nil).
+func (r *Repository) GetAgentByID(id string) (*AgentRecord, error) {
+	query := `SELECT id, name, personality, mood_state, goals, state, is_active, created_at, last_active, snapshot
+              FROM agents WHERE id = ?`
+	row := r.DB.QueryRow(query, id)
+	var a AgentRecord
+	err := row.Scan(
+		&a.ID, &a.Name, &a.Personality, &a.MoodState, &a.Goals,
+		&a.State, &a.IsActive, &a.CreatedAt, &a.LastActive, &a.Snapshot,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("GetAgentByID: %w", err)
+	}
+	return &a, nil
+}
+
+// CreateAgent вставляет нового агента. rec.ID должен быть заполнен (UUID).
+func (r *Repository) CreateAgent(rec AgentRecord) error {
+	query := `INSERT INTO agents (id, name, personality, state, is_active, created_at)
+              VALUES (?, ?, ?, ?, ?, ?)`
+	_, err := r.DB.Exec(query,
+		rec.ID, rec.Name, rec.Personality,
+		rec.State, rec.IsActive, rec.CreatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("CreateAgent: %w", err)
+	}
+	return nil
+}
+
+// DeactivateAgent выполняет soft-delete: устанавливает is_active = false.
+func (r *Repository) DeactivateAgent(id string) error {
+	res, err := r.DB.Exec(`UPDATE agents SET is_active = false WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("DeactivateAgent: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("agent not found: %s", id)
+	}
+	return nil
+}
+
+// CountMemoriesByAgent возвращает количество воспоминаний агента.
+func (r *Repository) CountMemoriesByAgent(agentID string) (int, error) {
+	var count int
+	err := r.DB.QueryRow(`SELECT COUNT(*) FROM memories WHERE agent_id = ?`, agentID).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("CountMemoriesByAgent: %w", err)
+	}
+	return count, nil
+}
+
+// MemoriesByAgent возвращает массив воспоминаний агента
+func (r *Repository) MemoriesByAgent(agentId string, agentType string, limit int) ([]*MemoryRecord, error) {
+	query := `
+        SELECT 
+            id, agent_id, type, content, emotional_tag, 
+            importance, access_count, last_accessed, 
+            related_agents, metadata, created_at 
+        FROM memories 
+        WHERE agent_id = $1 AND type = $2
+		ORDER BY created_at DESC
+		LIMIT $3`
+
+	rows, err := r.DB.Query(query, agentId, agentType, limit)
+	if err != nil {
+		return nil, fmt.Errorf("database query error: %w", err)
+	}
+	defer rows.Close()
+
+	var mem []*MemoryRecord
+
+	for rows.Next() {
+		m := new(MemoryRecord)
+
+		err := rows.Scan(
+			&m.ID,
+			&m.AgentID,
+			&m.Type,
+			&m.Content,
+			&m.EmotionalTag,
+			&m.Importance,
+			&m.AccessCount,
+			&m.LastAccessed,
+			&m.RelatedAgents,
+			&m.Metadata,
+			&m.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("row scan error: %w", err)
+		}
+
+		mem = append(mem, m)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return mem, nil
+}
+
+// CountRelationshipsByAgent возвращает количество связей агента.
+func (r *Repository) CountRelationshipsByAgent(agentID string) (int, error) {
+	var count int
+	err := r.DB.QueryRow(
+		`SELECT COUNT(*) FROM relationships WHERE agent1_id = ? OR agent2_id = ?`,
+		agentID, agentID,
+	).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("CountRelationshipsByAgent: %w", err)
+	}
+	return count, nil
+}
+
+// CountInteractionsByAgent возвращает суммарное кол-во взаимодействий агента.
+func (r *Repository) CountInteractionsByAgent(agentID string) (int, error) {
+	var count int
+	err := r.DB.QueryRow(
+		`SELECT COALESCE(SUM(interaction_count), 0) FROM relationships WHERE agent1_id = ? OR agent2_id = ?`,
+		agentID, agentID,
+	).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("CountInteractionsByAgent: %w", err)
+	}
+	return count, nil
+}
+
+// CountActiveAgents возвращает количество активных агентов.
+func (r *Repository) CountActiveAgents() (int, error) {
+	var count int
+	err := r.DB.QueryRow(`SELECT COUNT(*) FROM agents WHERE is_active = true`).Scan(&count)
+	return count, err
+}
+
+// CountTotalEvents возвращает общее количество событий.
+func (r *Repository) CountTotalEvents() (int, error) {
+	var count int
+	err := r.DB.QueryRow(`SELECT COUNT(*) FROM events`).Scan(&count)
+	return count, err
+}
+
+// GetWorldState читает key-value таблицу world_state.
+func (r *Repository) GetWorldState() (map[string]string, error) {
+	rows, err := r.DB.Query(`SELECT key, value FROM world_state`)
+	if err != nil {
+		return nil, fmt.Errorf("GetWorldState: %w", err)
+	}
+	defer rows.Close()
+	state := make(map[string]string)
+	for rows.Next() {
+		var k, v string
+		if err := rows.Scan(&k, &v); err != nil {
+			return nil, err
+		}
+		state[k] = v
+	}
+	return state, rows.Err()
 }

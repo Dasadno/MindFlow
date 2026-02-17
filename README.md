@@ -403,4 +403,235 @@ All errors follow this format:
 | 500 | `INTERNAL_ERROR` | Server error (details hidden in production) |
 
 
-# Client side of the project 
+---
+
+## Agent Intelligence Flow (Gemma via Ollama)
+
+Этот раздел объясняет как агенты «живут»: от создания до диалога, стрима мыслей и подключения человека.
+
+### Общая картина
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                          SERVER (Go)                                │
+│                                                                     │
+│  ┌──────────┐    spawn     ┌─────────────────────────────────────┐ │
+│  │  Client  │ ──────────► │           agents (SQLite)           │ │
+│  │ (HTTP)   │             │  id, name, personality, mood, goals  │ │
+│  └──────────┘             └─────────────────┬───────────────────┘ │
+│       ▲                                     │ load active agents   │
+│       │ SSE                                 ▼                      │
+│  ┌────┴─────┐             ┌─────────────────────────────────────┐ │
+│  │  /events │◄────────────│         Orchestrator (ticker)       │ │
+│  │  /stream │             │  every 15s: pick 2 agents → talk    │ │
+│  └──────────┘             └─────────────────┬───────────────────┘ │
+│                                             │ runConversation()    │
+│  ┌──────────┐  inject      ▼                ▼                      │
+│  │  Client  │ ──────► ┌────────┐    ┌─────────────────────────┐  │
+│  │ (HTTP)   │         │ Brain  │    │      Ollama (Gemma)      │  │
+│  └──────────┘         │Think() │◄──►│  POST /api/chat          │  │
+│                        └────────┘    │  model: gemma3           │  │
+│                                      └─────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 1. Создание агента (`POST /control/spawn`)
+
+Клиент отправляет имя и черты личности (Big Five). Сервер:
+
+1. Генерирует UUID
+2. Сохраняет агента в SQLite (`agents` таблица)
+3. Возвращает профиль агента
+
+На этом этапе агент — просто запись в БД. LLM не вызывается.
+
+```
+Client → POST /control/spawn { name, personality }
+       ← 201 { id, name, personality, currentMood: "neutral" }
+```
+
+---
+
+### 2. Оркестратор — сердце симуляции
+
+При старте сервера запускается фоновая горутина — **Orchestrator**. Каждые **15 секунд** она:
+
+```
+tick:
+  1. Загружает список активных агентов из БД
+  2. Если агентов < 2 → пропускает тик
+  3. Случайно выбирает агента-инициатора (Agent A) и собеседника (Agent B)
+  4. Вызывает runConversation(A, B)
+  5. Инкрементирует счётчик тиков в world_state
+```
+
+---
+
+### 3. Диалог двух агентов (`runConversation`)
+
+Это ключевой процесс. Каждый диалог — 4 реплики (2 хода каждого агента).
+
+```
+Шаг 1: Формируем системный промпт для Agent A
+───────────────────────────────────────────────
+You are Alice. You are curious and open-minded (openness: 0.85).
+You value honesty and creativity.
+Your quirk: you talk to yourself.
+Your current mood: excited.
+Your goals: make a new friend, explore the eastern zone.
+Keep responses concise (2-3 sentences). Stay in character.
+
+Шаг 2: Формируем начальный контекст (user message)
+───────────────────────────────────────────────────
+You see Bob nearby. Bob seems calm today.
+What do you say to start a conversation?
+
+Шаг 3: Отправляем в Ollama → получаем реплику Alice
+────────────────────────────────────────────────────
+POST http://localhost:11434/api/chat
+{ "model": "gemma3", "messages": [system, user], "stream": false }
+← "Hey Bob! You seem thoughtful today. What's on your mind?"
+
+Шаг 4: Сохраняем реплику в events таблицу
+──────────────────────────────────────────
+INSERT INTO events (topic="interaction", type="conversation",
+  source=alice_id, affected_agents=[alice_id, bob_id],
+  payload={ speaker:"Alice", content:"Hey Bob!...", tick:42 })
+
+Шаг 5: Пушим реплику в SSE-канал (все подключённые клиенты получают её мгновенно)
+
+Шаг 6: Формируем промпт для Bob (история диалога передаётся как контекст)
+──────────────────────────────────────────────────────────────────────────
+System: [Bob's personality prompt]
+User: Alice says to you: "Hey Bob! You seem thoughtful today. What's on your mind?"
+      What do you reply?
+
+← Bob: "Actually, I've been thinking about our last conversation about trust..."
+
+Шаг 7-8: Повторяем для Alice (2-й ход) и Bob (2-й ход)
+```
+
+Итого: 4 LLM-вызова на диалог, ~15–30 секунд суммарно при локальном Gemma.
+
+---
+
+### 4. SSE стрим — как фронтенд видит диалоги
+
+Клиент подключается один раз:
+
+```
+GET /events/stream
+Accept: text/event-stream
+
+← data: {"type":"conversation","speaker":"Alice","target":"Bob","content":"Hey Bob!...","tick":42}
+← data: {"type":"conversation","speaker":"Bob","target":"Alice","content":"Actually, I've been thinking...","tick":42}
+← data: {"type":"conversation","speaker":"Alice","target":"Bob","content":"Trust is everything...","tick":42}
+...
+```
+
+Соединение остаётся открытым. Каждая новая реплика приходит по мере генерации.
+
+**Стрим мыслей конкретного агента** (`GET /agents/{id}/thoughts`) — то же самое, но только события типа `thought` от этого агента. Используется для панели «внутренний монолог» на дашборде.
+
+---
+
+### 5. Человек присоединяется к диалогу
+
+Если пользователь хочет написать агенту:
+
+```
+POST /agents/{alice_id}/inject
+{ "type": "message", "content": "Alice, what do you think about the concept of free will?" }
+```
+
+Сервер сохраняет инъекцию. При следующем тике оркестратор:
+1. Видит входящее сообщение в очереди агента
+2. Добавляет его в контекст: `User (human) says: "Alice, what do you think about..."`
+3. Gemma генерирует ответ Alice с учётом вопроса
+4. Ответ уходит в SSE-стрим
+
+Таким образом человек органично вписывается в диалог, не ломая его логику.
+
+---
+
+### 6. Полный data flow
+
+```
+[Human] POST /control/spawn
+           │
+           ▼
+    [SQLite: agents] ←─────────────────────────────────────────┐
+           │                                                    │
+           │ (every 15s)                                        │
+           ▼                                                    │
+    [Orchestrator]                                              │
+    pickTwoAgents() ──► loadFromDB()                           │
+           │                                                    │
+           ▼                                                    │
+    runConversation(A, B)                                       │
+           │                                                    │
+           ├──► Brain.buildSystemPrompt(A) ──► string           │
+           │                                                    │
+           ├──► POST ollama/api/chat ──► reply_A               │
+           │                                                    │
+           ├──► saveEvent(reply_A) ─────────────────────────────┘
+           │
+           ├──► sseChannel ◄── GET /events/stream ◄── [Frontend]
+           │
+           ├──► Brain.buildSystemPrompt(B) ──► string
+           │
+           └──► POST ollama/api/chat ──► reply_B ──► saveEvent ──► sseChannel
+
+[Human] POST /agents/{id}/inject ──► injectionQueue[agentId]
+                                            │
+                                     (next tick)
+                                            │
+                                            ▼
+                                   added to conversation context
+```
+
+---
+
+### 7. Конфигурация
+
+| Переменная | Default | Описание |
+|------------|---------|----------|
+| `OLLAMA_URL` | `http://localhost:11434` | Адрес Ollama |
+| `OLLAMA_MODEL` | `gemma3` | Модель для диалогов |
+| `TICK_INTERVAL` | `15s` | Интервал между диалогами |
+| `CONVERSATION_TURNS` | `4` | Количество реплик в одном диалоге |
+| `DB_PATH` | `server/data/society.db` | Путь к SQLite |
+
+### Быстрый старт с Gemma
+
+```bash
+# 1. Установить и запустить Ollama
+ollama pull gemma3
+ollama serve
+
+# 2. Запустить сервер
+DB_PATH=server/data/society.db go run ./server/cmd/server/
+
+# 3. Создать двух агентов
+curl -X POST localhost:8080/control/spawn \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","personality":{"openness":0.9,"extraversion":0.7,"agreeableness":0.6,"conscientiousness":0.5,"neuroticism":0.2,"coreValues":["curiosity"],"quirks":["talks to herself"]}}'
+
+curl -X POST localhost:8080/control/spawn \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bob","personality":{"openness":0.4,"extraversion":0.3,"agreeableness":0.8,"conscientiousness":0.9,"neuroticism":0.3,"coreValues":["loyalty"],"quirks":["always speaks in metaphors"]}}'
+
+# 4. Подключиться к стриму диалогов
+curl -N http://localhost:8080/events/stream
+
+# 5. Вписаться в разговор
+curl -X POST localhost:8080/agents/{alice_id}/inject \
+  -H "Content-Type: application/json" \
+  -d '{"type":"message","content":"Alice, do you believe in fate?"}'
+```
+
+---
+
+# Client side of the project

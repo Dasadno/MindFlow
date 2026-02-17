@@ -165,7 +165,7 @@ type MemoryResponse struct {
 // MemoryEntryDTO — одно воспоминание.
 type MemoryEntryDTO struct {
 	ID            string    `json:"id"`
-	Type          string    `json:"type"`          // "episodic" | "semantic" | "procedural"
+	Type          string    `json:"type"` // "episodic" | "semantic" | "procedural"
 	Content       string    `json:"content"`
 	EmotionalTag  string    `json:"emotionalTag"`
 	Importance    float64   `json:"importance"`
@@ -232,12 +232,12 @@ type CreateRelationshipRequest struct {
 // EventDTO — мировое или агентное событие.
 type EventDTO struct {
 	ID             string    `json:"id"`
-	Type           string    `json:"type"`           // "global", "agent", "interaction"
-	Category       string    `json:"category"`       // "disaster", "celebration", "discovery"
+	Type           string    `json:"type"`     // "global", "agent", "interaction"
+	Category       string    `json:"category"` // "disaster", "celebration", "discovery"
 	Description    string    `json:"description"`
 	AffectedAgents []string  `json:"affectedAgents"`
 	Timestamp      time.Time `json:"timestamp"`
-	Status         string    `json:"status"`         // "pending", "active", "completed"
+	Status         string    `json:"status"` // "pending", "active", "completed"
 }
 
 // InjectEventRequest — инъекция глобального события, POST /api/v1/events.
