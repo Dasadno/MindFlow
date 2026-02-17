@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/einstein-islandai/ai-agent-society/server/internal/storage"
+	"milk/server/internal/storage"
 	"net/http"
 	"strconv"
 	"time"
@@ -42,6 +42,26 @@ func (h *Handler) ListAgents(w http.ResponseWriter, r *http.Request) {
 			Total: total,
 		},
 	})
+}
+
+// GetMemory - GET /agents/{id}/memory
+func (h *Handler) GetAgentMemories(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	memType := query.Get("type") // episodic | semantic | procedural
+	limit, _ := strconv.Atoi(query.Get("limit"))
+	if limit <= 0 {
+		limit = 50
+	}
+
+	agentID := r.PathValue("id")
+
+	memories, err := h.repo.MemoriesByAgent(agentID, memType, limit)
+	if err != nil {
+		http.Error(w, "Failed to fetch memories", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, memories)
 }
 
 // GetAgent — GET /agents/{id}

@@ -1,14 +1,14 @@
 // server/internal/api/handler.go
 package api
 
-import "github.com/einstein-islandai/ai-agent-society/server/internal/storage"
+import "milk/server/internal/storage"
 
-// Handler — HTTP-обработчики с доступом к хранилищу.
+// Handler — HTTP-обработчики с доступом к хранилищу и SSE hub.
 type Handler struct {
-    repo *storage.Repository
+	repo *storage.Repository
 }
 
 // NewHandler создаёт Handler с инъекцией зависимости Repository.
 func NewHandler(repo *storage.Repository) *Handler {
-    return &Handler{repo: repo}
+	return &Handler{repo: repo}
 }

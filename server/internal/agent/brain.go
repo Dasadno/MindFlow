@@ -1,183 +1,204 @@
 // Package agent provides the Brain component for agent cognition.
 //
-// The Brain is the cognitive core of an agent. It interfaces with the LLM
-// (GigaChat) to perform reasoning, decision-making, and natural language
-// generation. It orchestrates the thinking process by combining personality,
-// memory, and emotional context.
+// Brain — когнитивное ядро агента. Интерфейсится с LLM через Ollama
+// для рассуждений, принятия решений и генерации реплик.
 
 package agent
 
-import "time"
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
 
-// -----------------------------------------------------------------------------
-// Brain — когнитивное ядро агента, обёртка над LLM
-// -----------------------------------------------------------------------------
-// Brain не хранит данные напрямую — он ссылается на Personality, Memory и Emotions
-// агента-владельца. При каждом вызове Think() он:
-//   1. Собирает системный промпт из Personality (buildSystemPrompt)
-//   2. Извлекает релевантные воспоминания из Memory (vector search)
-//   3. Добавляет текущее эмоциональное состояние из Emotions
-//   4. Отправляет промпт в GigaChat через llmClient
-//   5. Парсит структурированный ответ в CognitiveOutput
-//
-// CreativityFactor в BrainConfig напрямую влияет на temperature LLM —
-// агент с высоким Openness будет генерировать более неожиданные мысли.
+	"milk/server/pkg/llm"
+)
 
+// LLMClient — интерфейс LLM-клиента для Brain.
+// Позволяет подменить реальный клиент на мок в тестах.
+type LLMClient interface {
+	Complete(req llm.CompletionRequest) (llm.CompletionResponse, error)
+}
+
+// Brain — когнитивное ядро агента, обёртка над LLM.
+// При вызове Think() собирает системный промпт из Personality,
+// отправляет в LLM и возвращает реплику.
 type Brain struct {
-	// personality — ссылка на личность агента-владельца.
-	// Используется для построения системного промпта (buildSystemPrompt).
-	Personality *Personality
-
-	// memory — ссылка на систему памяти для извлечения контекста.
-	// Think() делает vector search по релевантным воспоминаниям.
-	//	Memory *MemorySystem
-
-	// emotions — ссылка на движок эмоций.
-	// Текущее эмоциональное состояние включается в контекстный промпт.
-	Emotions *EmotionEngine
-
-	// thoughtBuffer — буфер недавних мыслей (рабочая память мышления).
-	// Ограничен Config.MaxThoughts. Новые мысли вытесняют старые.
+	Personality   *Personality
+	Emotions      *EmotionEngine
 	ThoughtBuffer []Thought
-
-	// thoughtStream — канал для стриминга мыслей на дашборд в реальном времени.
-	// Подключается к SSE-эндпоинту GET /api/v1/agents/:id/thoughts.
 	ThoughtStream chan Thought
-
-	// config — параметры когнитивного процесса.
-	Config BrainConfig
+	Config        BrainConfig
 }
 
 // BrainConfig — конфигурация когнитивного процесса.
 type BrainConfig struct {
-	// MaxThoughts — ёмкость буфера рабочей памяти мышления.
-	// Определяет, сколько предыдущих мыслей учитывается при следующем Think().
-	MaxThoughts int
-
-	// ReflectionDepth — глубина мета-когниции при рефлексии.
-	// 1 = простая рефлексия, 2+ = рефлексия о рефлексии (мета-мета-...).
-	ReflectionDepth int
-
-	// CreativityFactor — модификатор температуры LLM (0.0–2.0).
-	// Вычисляется из Personality.Openness при создании.
-	// 0.3 = консервативные, предсказуемые мысли.
-	// 1.5 = креативные, неожиданные связи.
+	MaxThoughts      int
+	ReflectionDepth  int
 	CreativityFactor float64
-
-	// ResponseTimeout — максимальное время ожидания ответа от LLM.
-	ResponseTimeout time.Duration
-
-	// MemoryQueryLimit — сколько воспоминаний извлекать из vector store для контекста.
+	ResponseTimeout  time.Duration
 	MemoryQueryLimit int
 }
 
-// -----------------------------------------------------------------------------
-// Thought — единица мышления агента
-// -----------------------------------------------------------------------------
-// Генерируется Brain.Think() и Brain.Reflect(). Каждая мысль попадает:
-//   1. В thoughtBuffer — для контекста следующих мыслей
-//   2. В thoughtStream — для real-time отображения на дашборде (SSE)
-//   3. Опционально в Memory — если достаточно значима
-
+// Thought — единица мышления агента.
 type Thought struct {
-	// Content — текстовое содержимое мысли ("Кажется, Алиса сегодня грустит...").
-	Content string
-
-	// Type — классификация мысли.
-	Type ThoughtType
-
-	// Triggers — что вызвало эту мысль (IDs стимулов, воспоминаний или предыдущих мыслей).
-	Triggers []string
-
-	// Timestamp — когда мысль была сгенерирована.
+	Content   string
+	Type      ThoughtType
+	Triggers  []string
 	Timestamp time.Time
 }
 
-// ThoughtType — классификация мыслей для фильтрации и отображения.
+// ThoughtType — классификация мыслей.
 type ThoughtType string
 
 const (
-	ThoughtObservation ThoughtType = "observation" // Наблюдение за окружением: "I see Agent X nearby"
-	ThoughtReasoning   ThoughtType = "reasoning"   // Цепочка рассуждений: "If X then Y, so I should..."
-	ThoughtDecision    ThoughtType = "decision"    // Принятое решение: "I will talk to Agent X"
-	ThoughtEmotion     ThoughtType = "emotion"     // Эмоциональная реакция: "This makes me feel..."
-	ThoughtReflection  ThoughtType = "reflection"  // Мета-когниция: "I notice I've been anxious lately"
-	ThoughtMemory      ThoughtType = "memory"      // Вспоминание: "This reminds me of the time when..."
+	ThoughtObservation ThoughtType = "observation"
+	ThoughtReasoning   ThoughtType = "reasoning"
+	ThoughtDecision    ThoughtType = "decision"
+	ThoughtEmotion     ThoughtType = "emotion"
+	ThoughtReflection  ThoughtType = "reflection"
+	ThoughtMemory      ThoughtType = "memory"
 )
 
-// -----------------------------------------------------------------------------
-// CognitiveContext — входной контекст для когнитивного цикла
-// -----------------------------------------------------------------------------
-// Формируется перед вызовом Brain.Think(). Объединяет всё, что агент
-// «видит, чувствует и помнит» в данный момент.
-
+// CognitiveContext — входной контекст для когнитивного цикла.
 type CognitiveContext struct {
-	// WorldContext — контекст мира (другие агенты, события, тик).
-	WorldContext WorldContext
-
-	// RelevantMemories — воспоминания, извлечённые vector search по текущей ситуации.
-	//TODO	RelevantMemories []MemoryEntry
-
-	// CurrentEmotions — активные дискретные эмоции в данный момент.
+	WorldContext    WorldContext
 	CurrentEmotions []DiscreteEmotion
-
-	// CurrentMood — текущее настроение (дискретная метка).
-	CurrentMood Mood
-
-	// ActiveGoals — текущие цели агента, отсортированные по приоритету.
-	ActiveGoals []Goal
-
-	// RecentThoughts — последние N мыслей из thoughtBuffer.
-	RecentThoughts []Thought
+	CurrentMood     Mood
+	ActiveGoals     []Goal
+	RecentThoughts  []Thought
 }
 
-// -----------------------------------------------------------------------------
-// CognitiveOutput — структурированный результат когнитивного цикла
-// -----------------------------------------------------------------------------
-// Brain парсит ответ LLM в эту структуру. Она содержит:
-//   - новые мысли для thoughtBuffer
-//   - решение о действии
-//   - эмоциональную реакцию (если есть)
-
+// CognitiveOutput — результат когнитивного цикла.
 type CognitiveOutput struct {
-	// Thoughts — сгенерированные мысли (может быть несколько за один цикл).
-	Thoughts []Thought
-
-	// ChosenAction — действие, которое агент решил предпринять.
-	ChosenAction *AgentAction
-
-	// EmotionalShift — изменение эмоционального состояния в результате мышления.
-	// nil, если мышление не вызвало эмоциональной реакции.
+	Thoughts       []Thought
+	ChosenAction   *AgentAction
 	EmotionalShift *PADState
-
-	// GoalUpdates — изменения в целях (новые цели, обновление прогресса).
-	GoalUpdates []Goal
-
-	// RawResponse — сырой ответ LLM для отладки.
-	RawResponse string
+	GoalUpdates    []Goal
+	RawResponse    string
 }
 
-// -----------------------------------------------------------------------------
-// ReflectionInsights — результат рефлексии (мета-когниции)
-// -----------------------------------------------------------------------------
-// Генерируется Brain.Reflect(). Рефлексия — периодический процесс (не каждый тик),
-// во время которого агент анализирует накопленный опыт и обновляет самомодель.
-
+// ReflectionInsights — результат рефлексии.
 type ReflectionInsights struct {
-	// Insights — выявленные паттерны и наблюдения о себе и мире.
-	// Пример: "I seem to get anxious when Agent X is around"
-	Insights []string
-
-	// NewGoals — новые цели, сформированные в результате рефлексии.
-	NewGoals []Goal
-
-	// UpdatedGoals — существующие цели с обновлённым прогрессом или приоритетом.
-	UpdatedGoals []Goal
-
-	// MemoriesToConsolidate — ID эпизодических воспоминаний, которые стоит
-	// объединить в семантическую память.
+	Insights              []string
+	NewGoals              []Goal
+	UpdatedGoals          []Goal
 	MemoriesToConsolidate []string
+	SelfAssessment        string
+}
 
-	// SelfAssessment — свободный текст самооценки ("I've been too reclusive lately").
-	SelfAssessment string
+// NewBrain создаёт Brain для агента.
+func NewBrain(personality *Personality) *Brain {
+	creativity := 0.5 + personality.Openness*0.5 // 0.5–1.0
+	return &Brain{
+		Personality:   personality,
+		ThoughtBuffer: make([]Thought, 0, 10),
+		ThoughtStream: make(chan Thought, 32),
+		Config: BrainConfig{
+			MaxThoughts:      10,
+			CreativityFactor: creativity,
+			ResponseTimeout:  60 * time.Second,
+		},
+	}
+}
+
+// BuildSystemPrompt строит системный промпт из личности агента.
+func BuildSystemPrompt(name string, p *Personality, mood Mood, goals []Goal) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("Ты русский %s, разговаривай только на русском\n\n", name))
+	sb.WriteString(fmt.Sprintf("You are %s, an autonomous AI agent in a social simulation.\n\n ", name))
+
+	sb.WriteString("Your personality:\n")
+	if p.Openness > 0.6 {
+		sb.WriteString("- You are curious and open to new ideas.\n")
+	} else {
+		sb.WriteString("- You are practical and prefer familiar things.\n")
+	}
+	if p.Extraversion > 0.6 {
+		sb.WriteString("- You are outgoing and enjoy socializing.\n")
+	} else {
+		sb.WriteString("- You are introverted and prefer quiet reflection.\n")
+	}
+	if p.Agreeableness > 0.6 {
+		sb.WriteString("- You are warm, cooperative, and empathetic.\n")
+	} else {
+		sb.WriteString("- You are direct, competitive, and skeptical.\n")
+	}
+	if p.Conscientiousness > 0.6 {
+		sb.WriteString("- You are organized and disciplined.\n")
+	} else {
+		sb.WriteString("- You are spontaneous and flexible.\n")
+	}
+	if p.Neuroticism > 0.6 {
+		sb.WriteString("- You tend to be anxious and emotionally reactive.\n")
+	} else {
+		sb.WriteString("- You are emotionally stable and calm under pressure.\n")
+	}
+
+	if len(p.CoreValues) > 0 {
+		sb.WriteString(fmt.Sprintf("\nYour core values: %s.\n", strings.Join(p.CoreValues, ", ")))
+	}
+	if len(p.Quirks) > 0 {
+		sb.WriteString(fmt.Sprintf("Your quirks: %s.\n", strings.Join(p.Quirks, ", ")))
+	}
+
+	sb.WriteString(fmt.Sprintf("\nYour current mood: %s.\n", string(mood)))
+
+	if len(goals) > 0 {
+		sb.WriteString("\nYour current goals:\n")
+		for _, g := range goals {
+			if !g.IsCompleted {
+				sb.WriteString(fmt.Sprintf("- %s\n", g.Description))
+			}
+		}
+	}
+
+	sb.WriteString("\nIMPORTANT: Keep responses concise (2-3 sentences max). Stay in character. Be natural and conversational.")
+
+	return sb.String()
+}
+
+// Think вызывает LLM с историей диалога и возвращает следующую реплику.
+func (b *Brain) Think(
+	ctx context.Context,
+	client LLMClient,
+	name string,
+	mood Mood,
+	goals []Goal,
+	history []llm.Message,
+) (string, error) {
+	sysPrompt := BuildSystemPrompt(name, b.Personality, mood, goals)
+
+	req := llm.CompletionRequest{
+		SystemPrompt: sysPrompt,
+		Messages:     history,
+	}
+
+	if b.Config.CreativityFactor > 0 {
+		t := b.Config.CreativityFactor * 0.9
+		req.Temperature = &t
+	}
+
+	resp, err := client.Complete(req)
+	if err != nil {
+		return "", fmt.Errorf("Brain.Think: %w", err)
+	}
+
+	thought := Thought{
+		Content:   resp.Content,
+		Type:      ThoughtDecision,
+		Timestamp: time.Now(),
+	}
+
+	b.ThoughtBuffer = append(b.ThoughtBuffer, thought)
+	if len(b.ThoughtBuffer) > b.Config.MaxThoughts {
+		b.ThoughtBuffer = b.ThoughtBuffer[1:]
+	}
+
+	select {
+	case b.ThoughtStream <- thought:
+	default:
+	}
+
+	return resp.Content, nil
 }
