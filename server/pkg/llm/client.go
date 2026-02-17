@@ -84,7 +84,7 @@ func NewClient() *Client {
 	}
 	model := os.Getenv("OLLAMA_MODEL")
 	if model == "" {
-		model = "gemma3"
+		model = "gemma3:4b"
 	}
 	return &Client{
 		BaseURL: baseURL,

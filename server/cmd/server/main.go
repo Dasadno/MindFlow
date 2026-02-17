@@ -30,7 +30,7 @@ func main() {
 	hub := api.NewHub()
 
 	// 4. HTTP Handler
-	handler := api.NewHandler(repo)
+	handler := api.NewHandler(repo, hub)
 	mux := api.NewMux(handler)
 
 	h := cors.New(cors.Options{

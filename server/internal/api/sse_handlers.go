@@ -8,7 +8,6 @@ import (
 // EventsStream — GET /events/stream
 // SSE-эндпоинт, держит соединение и пушит события.
 func (h *Handler) EventsStream(w http.ResponseWriter, r *http.Request) {
-	var hub *Hub
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		writeError(w, http.StatusInternalServerError, ErrCodeInternalError, "SSE not supported")
@@ -20,8 +19,8 @@ func (h *Handler) EventsStream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	ch := hub.Subscribe()
-	defer hub.Unsubscribe(ch)
+	ch := h.hub.Subscribe()
+	defer h.hub.Unsubscribe(ch)
 
 	w.Write([]byte("data: {\"type\":\"connected\"}\n\n"))
 	flusher.Flush()
@@ -43,7 +42,6 @@ func (h *Handler) EventsStream(w http.ResponseWriter, r *http.Request) {
 // InjectMessage — POST /agents/{id}/inject
 // Добавляет сообщение человека в очередь агента.
 func (h *Handler) InjectMessage(w http.ResponseWriter, r *http.Request) {
-	var hub *Hub
 	id := r.PathValue("id")
 	if id == "" {
 		writeError(w, http.StatusBadRequest, ErrCodeBadRequest, "missing agent id")
@@ -66,7 +64,7 @@ func (h *Handler) InjectMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hub.Inject(id, req.Content)
+	h.hub.Inject(id, req.Content)
 
 	writeJSON(w, http.StatusOK, SuccessResponse{
 		Success: true,
