@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/model/store';
-import { LogOut, LogIn, Zap } from 'lucide-react';
+import { LogOut, LogIn } from 'lucide-react';
 
 /**
  * Navbar - Навигационная панель для главной страницы

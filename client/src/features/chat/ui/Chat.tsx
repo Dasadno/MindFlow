@@ -49,7 +49,7 @@
 
 //     return (
 //         <div className="flex h-screen overflow-hidden bg-deep-midnight relative selection:bg-bright-turquoise/30 selection:text-white font-sans">
-            
+
 //             {/* --- Глобальные стили для скрытия скроллбаров --- */}
 //             <style>{`
 //                 @keyframes float {
@@ -61,11 +61,11 @@
 //                     to { opacity: 1; transform: translateY(0); }
 //                 }
 //                 .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
-                
+
 //                 /* Скрываем скроллбары для всех браузеров */
 //                 .no-scrollbar::-webkit-scrollbar { display: none; }
 //                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                
+
 //                 .glass-panel {
 //                     background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
 //                     backdrop-filter: blur(20px);
@@ -104,7 +104,7 @@
 
 //             {/* --- ОСНОВНАЯ ОБЛАСТЬ ЧАТА --- */}
 //             <main className="flex-1 flex flex-col overflow-hidden relative z-10">
-                
+
 //                 {/* ХЕДЕР */}
 //                 <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 glass-panel shrink-0">
 //                     <div className="flex items-center gap-5">
@@ -193,7 +193,7 @@
 //                             <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
 //                         </Button>
 //                     </form>
-                    
+
 //                     <div className="mt-6 flex justify-center items-center gap-6">
 //                         <div className="h-[1px] w-12 bg-white/5" />
 //                         <span className="text-[10px] font-mono text-white/80 tracking-[0.5em] uppercase">
@@ -210,21 +210,11 @@
 
 
 import { useState, useEffect } from 'react';
-import { Menu, X, Send, MoreVertical, Plus } from 'lucide-react';
+import { Menu, X, Send, MoreVertical } from 'lucide-react';
 import { useChatStore } from '../model/store';
 import { ChatSidebar, MessageList } from '../../../widgets';
 import { Button } from '@/shared/ui/Button';
 import Input from '@/shared/ui/Input';
-
-const getAgentColor = (id: string) => {
-    if (!id) return '#26d0ce';
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-        hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = Math.abs(hash % 360);
-    return `hsl(${hue}, 75%, 65%)`;
-};
 
 export const Chat = () => {
     const {
@@ -265,7 +255,7 @@ export const Chat = () => {
 
     return (
         <div className="flex h-screen overflow-hidden bg-deep-midnight relative selection:bg-bright-turquoise/30 selection:text-white font-sans">
-            
+
             <style>{`
                 @keyframes float {
                     0%, 100% { transform: translateY(0px); opacity: 0.3; }
@@ -292,7 +282,7 @@ export const Chat = () => {
 
             {/* --- МОБИЛЬНЫЙ OVERLAY --- */}
             {isSidebarOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
                     onClick={() => setIsSidebarOpen(false)}
                 />
@@ -326,7 +316,7 @@ export const Chat = () => {
 
             {/* --- ОСНОВНАЯ ОБЛАСТЬ ЧАТА --- */}
             <main className="flex-1 flex flex-col overflow-hidden relative z-10">
-                
+
                 {/* ХЕДЕР */}
                 <header className="h-20 flex items-center justify-between px-4 md:px-8 border-b border-white/5 glass-panel shrink-0">
                     <div className="flex items-center gap-3 md:gap-5">
@@ -378,7 +368,7 @@ export const Chat = () => {
                                 </div>
                             </div>
                             <p className="text-white/80 font-mono text-[9px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase animate-pulse text-center leading-relaxed">
-                                Сообщений пока нет<br/>Ожидание активности системы
+                                Сообщений пока нет<br />Ожидание активности системы
                             </p>
                         </div>
                     )}
@@ -386,8 +376,8 @@ export const Chat = () => {
 
                 {/* ОБЛАСТЬ ВВОДА */}
                 <div className="p-4 md:p-10 bg-gradient-to-t from-deep-midnight via-deep-midnight/90 to-transparent">
-                    <form 
-                        onSubmit={handleSend} 
+                    <form
+                        onSubmit={handleSend}
                         className="max-w-4xl mx-auto flex items-center gap-2 md:gap-3 p-1.5 md:p-2 rounded-[24px] md:rounded-[32px] bg-white/[0.03] border border-white/5 backdrop-blur-3xl focus-within:border-bright-turquoise/30 transition-all duration-500 shadow-2xl"
                     >
                         <div className="flex-1">
@@ -409,7 +399,7 @@ export const Chat = () => {
                             <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </Button>
                     </form>
-                    
+
                     <div className="mt-4 md:mt-6 flex justify-center items-center gap-4 md:gap-6">
                         <div className="h-[1px] w-8 md:w-12 bg-white/5" />
                         <span className="text-[8px] md:text-[10px] font-mono text-white/40 tracking-[0.3em] md:tracking-[0.5em] uppercase text-center">
