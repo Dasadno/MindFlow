@@ -17,7 +17,6 @@ import { useAuthStore } from '@/features/auth/model/store';
  */
 
 export const Navbar = () => {
-
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const logout = useAuthStore((state) => state.logout);
     const navigate = useNavigate();
@@ -74,12 +73,6 @@ export const Navbar = () => {
                 </a>
             </div>
 
-            {/* КНОПКА CTA */}
-            <button 
-            onClick={() => navigate('/chat')}
-            className="bg-gradient-accent text-white px-6 py-2.5 rounded-xl text-sm font-black hover:shadow-[0_0_25px_rgba(122,248,196,0.6)] hover:scale-105 transition-all active:scale-95 border border-white/20">
-                Запустить поток
-            </button>
             {/* ПРАВАЯ ЧАСТЬ: АУТЕНТИФИКАЦИЯ И CTA */}
             <div className="flex items-center gap-4">
                 {/* Кнопка Вход/Выход */}

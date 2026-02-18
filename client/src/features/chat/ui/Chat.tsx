@@ -102,7 +102,7 @@
 
 
 import { useState, useEffect } from 'react';
-import { Menu, Send, MoreVertical, X } from 'lucide-react';
+import { Menu, X, Send, MoreVertical, Plus } from 'lucide-react';
 import { useChatStore } from '../model/store';
 import { ChatSidebar, MessageList } from '../../../widgets';
 import { Button } from '@/shared/ui/Button';
@@ -152,7 +152,7 @@ export const Chat = () => {
 
     return (
         <div className="flex h-screen overflow-hidden bg-deep-midnight relative selection:bg-bright-turquoise/30 selection:text-white font-sans">
-
+            
             {/* --- Глобальные стили для скрытия скроллбаров --- */}
             <style>{`
                 @keyframes float {
@@ -171,67 +171,43 @@ export const Chat = () => {
                 
                 .glass-panel {
                     background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
+                    backdrop-filter: blur(20px);
                 }
             `}</style>
 
-            {/* Фоновые градиенты (Оптимизировано: уменьшен blur, убрана лишняя анимация) */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none transform-gpu">
-                <div className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] bg-bright-turquoise/5 blur-[80px] rounded-full" />
-                <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-soft-teal/5 blur-[60px] rounded-full" style={{ animation: 'float 15s infinite ease-in-out' }} />
+            {/* Фоновые градиенты */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] bg-bright-turquoise/10 blur-[140px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-soft-teal/10 blur-[120px] rounded-full" style={{ animation: 'float 10s infinite' }} />
             </div>
 
-            {/* --- MOBILE OVERLAY --- */}
-            {isSidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
-                    onClick={() => setIsSidebarOpen(false)}
-                />
-            )}
-
-            {/* --- САЙДБАР (Desktop & Mobile) --- */}
-            <aside className={`
-                flex flex-col w-80 bg-deep-midnight/95 md:bg-white/[0.01] border-r border-white/5 backdrop-blur-3xl 
-                fixed inset-y-0 left-0 z-50 h-full transition-transform duration-300 md:relative md:translate-x-0
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}>
-                <div className="p-6 flex justify-between items-center">
+            {/* --- САЙДБАР (Desktop) --- */}
+            <aside className="hidden md:flex flex-col w-80 bg-white/[0.01] border-r border-white/5 backdrop-blur-3xl relative z-20">
+                <div className="p-6">
                     <div className="flex items-center gap-3 group transition-transform duration-300 hover:scale-[1.02]">
-                        <img
-                            src="/cover2.png"
-                            alt="Логотип"
-                            className="w-10 h-10 rounded-2xl object-cover shadow-[0_0_20px_rgba(38,208,206,0.3)]"
+                        <img 
+                            src="/cover2.png" 
+                            alt="Логотип" 
+                            className="w-10 h-10 rounded-2xl object-cover shadow-[0_0_20px_rgba(38,208,206,0.3)]" 
                         />
                         <div className="text-xl font-bold bg-gradient-accent bg-clip-text text-transparent tracking-tighter uppercase text-white">
                             MindFlow
                         </div>
                     </div>
-
-                    {/* Кнопка закрытия для мобильных */}
-                    <button
-                        onClick={() => setIsSidebarOpen(false)}
-                        className="md:hidden p-2 text-white/50 hover:text-white transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto no-scrollbar px-4 space-y-2 pb-24">
                     <ChatSidebar
                         agents={agents}
                         selectedAgentId={selectedAgentId}
-                        onSelectAgent={(agentId) => {
-                            selectAgent(agentId);
-                            setIsSidebarOpen(false);
-                        }}
+                        onSelectAgent={selectAgent}
                     />
                 </div>
             </aside>
 
             {/* --- ОСНОВНАЯ ОБЛАСТЬ ЧАТА --- */}
             <main className="flex-1 flex flex-col overflow-hidden relative z-10">
-
+                
                 {/* ХЕДЕР */}
                 <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 glass-panel shrink-0">
                     <div className="flex items-center gap-5">
@@ -280,15 +256,15 @@ export const Chat = () => {
                             <div className="group relative">
                                 <div className="absolute inset-0 bg-bright-turquoise/10 blur-3xl rounded-full scale-150 transition-transform duration-700" />
                                 <div className="w-32 h-32 rounded-[40px] bg-white/[0.03] flex items-center justify-center mb-6 border border-white/5 overflow-hidden relative z-10">
-                                    <img
-                                        src="/cover2.png"
-                                        alt="Логотип"
-                                        className="w-full h-full object-cover opacity-70 tracking-[0.4em] animate-pulse"
+                                    <img 
+                                        src="/cover2.png" 
+                                        alt="Логотип" 
+                                        className="w-full h-full object-cover opacity-70 tracking-[0.4em] animate-pulse" 
                                     />
                                 </div>
                             </div>
                             <p className="text-white/80 font-mono text-[11px] tracking-[0.4em] uppercase animate-pulse text-center">
-                                Сообщений пока нет<br />Ожидание активности системы
+                                Сообщений пока нет<br/>Ожидание активности системы
                             </p>
                         </div>
                     )}
@@ -296,8 +272,8 @@ export const Chat = () => {
 
                 {/* ОБЛАСТЬ ВВОДА */}
                 <div className="p-6 md:p-10 bg-gradient-to-t from-deep-midnight via-deep-midnight/90 to-transparent">
-                    <form
-                        onSubmit={handleSend}
+                    <form 
+                        onSubmit={handleSend} 
 
                         className="max-w-4xl mx-auto flex items-center gap-3 p-2 rounded-[32px] bg-white/[0.03] border border-white/5 backdrop-blur-3xl focus-within:border-bright-turquoise/30 transition-all duration-500 shadow-2xl"
                     >
@@ -320,7 +296,7 @@ export const Chat = () => {
                             <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </Button>
                     </form>
-
+                    
                     <div className="mt-6 flex justify-center items-center gap-6">
                         <div className="h-[1px] w-12 bg-white/5" />
                         <span className="text-[10px] font-mono text-white/80 tracking-[0.5em] uppercase">
