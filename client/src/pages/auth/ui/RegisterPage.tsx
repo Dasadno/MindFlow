@@ -25,6 +25,8 @@ const RegisterPage = () => {
                     to { opacity: 1; transform: scale(1); }
                 }
                 .animate-container { animation: scaleIn 0.5s ease-out forwards; }
+                ::-webkit-scrollbar { display: none; }
+                * { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
 
             {/* Фоновые градиенты */}
@@ -33,8 +35,8 @@ const RegisterPage = () => {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-light-mint/10 blur-[130px] rounded-full animate-pulse" />
             </div>
 
-            <main className="relative z-10 w-full max-w-[460px] animate-container">
-                <div className="bg-white/[0.03] border border-white/10 backdrop-blur-3xl p-10 md:p-14 rounded-[3rem] shadow-[0_25px_50px_rgba(0,0,0,0.4)]">
+            <main className="relative z-10 w-full max-w-[460px] animate-container overflow-hidden">
+                <div className="bg-white/[0.03] border border-white/10 backdrop-blur-3xl p-10 md:p-14 rounded-[3rem] shadow-[0_25px_50px_rgba(0,0,0,0.4)] overflow-hidden">
                     
                     {/* Заголовок с защитой хвостика буквы "я" */}
                     <div className="text-center mb-10">
