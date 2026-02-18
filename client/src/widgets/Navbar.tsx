@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/model/store';
+import { LogOut, LogIn, Zap } from 'lucide-react';
 
 /**
  * Navbar - Навигационная панель для главной страницы
@@ -78,9 +79,19 @@ export const Navbar = () => {
                 {/* Кнопка Вход/Выход */}
                 <button
                     onClick={handleAuthAction}
-                    className="hidden md:block text-sm font-bold text-white/70 hover:text-white transition-colors uppercase tracking-wider"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 border border-white/5 bg-white/[0.02] text-white/70 hover:bg-white/[0.08] hover:border-white/20 hover:text-white active:scale-95"
                 >
-                    {isAuthenticated ? 'Выйти' : 'Войти'}
+                    {isAuthenticated ? (
+                        <>
+                            <LogOut className="w-4 h-4 text-soft-teal" />
+                            <span className="hidden sm:inline">Выйти</span>
+                        </>
+                    ) : (
+                        <>
+                            <LogIn className="w-4 h-4 text-bright-turquoise" />
+                            <span className="hidden sm:inline">Войти</span>
+                        </>
+                    )}
                 </button>
 
                 {/* КНОПКА CTA (В Чат) */}
