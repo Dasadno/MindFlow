@@ -9,7 +9,13 @@
 
 package agent
 
-import "time"
+import (
+	"context"
+	"math/rand"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // -----------------------------------------------------------------------------
 // MemorySystem — трёхуровневая система памяти агента
@@ -132,7 +138,7 @@ const (
 
 type WorkingMemory struct {
 	// Buffer — массив последних записей, кольцевой буфер.
-	Buffer []MemoryEntry
+	Buffer []MemoryEntry // Нужно подумать насчет этого
 
 	// Capacity — максимальный размер буфера (обычно 5–10).
 	Capacity int
@@ -166,4 +172,17 @@ type Experience struct {
 
 	// Timestamp — когда произошло событие.
 	Timestamp time.Time
+}
+
+func (b *Brain) Memoring(ctx context.Context, memory string) error { // TODO
+	b.Memory.WorkingMem.Buffer = append(b.Memory.WorkingMem.Buffer, MemoryEntry{
+		ID:           uuid.New().String(),
+		Type:         MemoryEpisodic,
+		Content:      memory,
+		Importance:   rand.Float64(),
+		Timestamp:    time.Now(),
+		AccessCount:  0,
+		LastAccessed: time.Now(),
+	})
+	return nil
 }

@@ -24,6 +24,7 @@ type LLMClient interface {
 // При вызове Think() собирает системный промпт из Personality,
 // отправляет в LLM и возвращает реплику.
 type Brain struct {
+	Memory        *MemorySystem
 	Personality   *Personality
 	Emotions      *EmotionEngine
 	ThoughtBuffer []Thought
@@ -33,6 +34,7 @@ type Brain struct {
 
 // BrainConfig — конфигурация когнитивного процесса.
 type BrainConfig struct {
+	Memories         []string
 	MaxThoughts      int
 	ReflectionDepth  int
 	CreativityFactor float64
@@ -95,6 +97,7 @@ func NewBrain(personality *Personality) *Brain {
 		ThoughtBuffer: make([]Thought, 0, 5),
 		ThoughtStream: make(chan Thought, 16),
 		Config: BrainConfig{
+			Memories:         make([]string, 0, 10),
 			MaxThoughts:      5,
 			CreativityFactor: creativity,
 			ResponseTimeout:  5 * time.Minute,
@@ -103,7 +106,7 @@ func NewBrain(personality *Personality) *Brain {
 }
 
 // BuildSystemPrompt строит системный промпт из личности агента.
-func BuildSystemPrompt(name string, p *Personality, mood Mood, goals []Goal) string {
+func (b *Brain) BuildSystemPrompt(name string, p *Personality, mood Mood, goals []Goal) string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("Ты русский %s, разговаривай только на русском\n\n", name))
 	sb.WriteString(fmt.Sprintf("You are %s, an autonomous AI agent in a social simulation.\n\n ", name))
@@ -154,12 +157,12 @@ func BuildSystemPrompt(name string, p *Personality, mood Mood, goals []Goal) str
 	}
 
 	sb.WriteString("\nIMPORTANT: Keep responses concise (2-3 sentences max). Stay in character. Be natural and conversational.")
-
+	b.Config.Memories = append(b.Config.Memories, sb.String())
 	return sb.String()
 }
 
 // Think вызывает LLM с историей диалога и возвращает следующую реплику.
-func (b *Brain) Think(
+func (a *Agent) Think(
 	ctx context.Context,
 	client LLMClient,
 	name string,
@@ -167,15 +170,15 @@ func (b *Brain) Think(
 	goals []Goal,
 	history []llm.Message,
 ) (string, error) {
-	sysPrompt := BuildSystemPrompt(name, b.Personality, mood, goals)
+	sysPrompt := a.Brain.BuildSystemPrompt(name, a.Brain.Personality, mood, goals)
 
 	req := llm.CompletionRequest{
 		SystemPrompt: sysPrompt,
 		Messages:     history,
 	}
 
-	if b.Config.CreativityFactor > 0 {
-		t := b.Config.CreativityFactor * 0.9
+	if a.Brain.Config.CreativityFactor > 0 {
+		t := a.Brain.Config.CreativityFactor * 0.9
 		req.Temperature = &t
 	}
 
@@ -190,13 +193,15 @@ func (b *Brain) Think(
 		Timestamp: time.Now(),
 	}
 
-	b.ThoughtBuffer = append(b.ThoughtBuffer, thought)
-	if len(b.ThoughtBuffer) > b.Config.MaxThoughts {
-		b.ThoughtBuffer = b.ThoughtBuffer[1:]
+	a.Brain.Config.Memories = append(a.Brain.Config.Memories, thought.Content)
+
+	a.Brain.ThoughtBuffer = append(a.Brain.ThoughtBuffer, thought)
+	if len(a.Brain.ThoughtBuffer) > a.Brain.Config.MaxThoughts {
+		a.Brain.ThoughtBuffer = a.Brain.ThoughtBuffer[1:]
 	}
 
 	select {
-	case b.ThoughtStream <- thought:
+	case a.Brain.ThoughtStream <- thought:
 	default:
 	}
 

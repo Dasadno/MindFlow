@@ -19,7 +19,6 @@ import (
 type Client struct {
 	// BaseURL — endpoint Ollama сервера (default: http://localhost:11434).
 	BaseURL string
-
 	// Model — имя модели в Ollama (default: gemma3).
 	Model string
 
@@ -95,7 +94,7 @@ func NewClient() *Client {
 		},
 		Config: ClientConfig{
 			DefaultTemperature: 0.7,
-			MaxTokens:          512,
+			MaxTokens:          5500,
 			Timeout:            5 * time.Minute,
 		},
 	}
@@ -120,8 +119,6 @@ type ollamaChatResponse struct {
 
 // Complete отправляет запрос в Ollama и возвращает ответ.
 func (c *Client) Complete(ctx context.Context, req CompletionRequest) (CompletionResponse, error) {
-	c.sem <- struct{}{} // with semaphore
-	defer func() { <-c.sem }()
 	start := time.Now()
 
 	messages := req.Messages
