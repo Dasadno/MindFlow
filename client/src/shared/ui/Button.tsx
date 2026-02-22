@@ -7,7 +7,7 @@ interface ButtonProps {
     disabled?: boolean;
 }
 
-export const Button = ({ children, onClick, variant = 'primary', className = '', type = 'button' }: ButtonProps) => {
+export const Button = ({ children, onClick, variant = 'primary', className = '', type = 'button', disabled = false }: ButtonProps) => {
     const baseStyles = 'px-8 py-3 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 focus:outline-none active:scale-95 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants = {
