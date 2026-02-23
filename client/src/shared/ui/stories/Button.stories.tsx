@@ -6,7 +6,6 @@ const meta: Meta<typeof Button> = {
     component: Button,
     parameters: {
         layout: 'centered',
-        // Ставим темный фон как в приложении
         backgrounds: {
             default: 'mindflow-dark',
             values: [

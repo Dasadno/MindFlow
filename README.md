@@ -6,6 +6,22 @@ Autonomous AI agents with personalities, emotions, memory, and social relationsh
 
 **Repository:** [Milk-IslandAI](https://github.com/Milk-IslandAI)
 
+## start
+
+```bash
+ollama  pull gemma:4b
+
+go run server/cmd/server/main.go 
+// now server on http://localhost:8080
+
+cd client
+npm run dev
+// now client on http://localhost:5173
+
+ollama serve
+```
+---
+
 ## Project Structure
 
 ```
@@ -34,18 +50,6 @@ server/
 ├── go.mod
 └── README.md
 ```
-
-## Quick start
-
-```bash
-ollama  pull gemma:4b
-
-docker-compose up -d 
-// now server on http://localhost:8080
-
-ollama serve
-```
----
 
 ## Database Schema
 

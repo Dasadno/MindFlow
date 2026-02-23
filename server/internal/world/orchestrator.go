@@ -1,7 +1,7 @@
 // Package world provides the simulation orchestrator.
 //
 // Orchestrator — центральный координатор симуляции.
-// Каждые 15 секунд берёт двух случайных агентов и запускает диалог.
+// Каждые 22 секунд берёт двух случайных агентов и запускает диалог.
 
 package world
 
@@ -24,7 +24,7 @@ import (
 // Orchestrator — тикер диалогов между агентами.
 type Orchestrator struct {
 	repo         *storage.Repository
-	llm          *llm.Client
+	llm          agent.LLMClient
 	hub          *api.Hub
 	tickInterval time.Duration
 	turns        int // реплик за тик

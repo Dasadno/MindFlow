@@ -12,12 +12,10 @@
 export const Footer = () => {
     return (
         <footer className="py-12 border-t border-white/5 text-center">
-            {/* Название проекта */}
             <div className="opacity-30 text-xs tracking-[0.3em] uppercase mb-4">
                 MindFlow Digital Consciousness
             </div>
 
-            {/* Copyright */}
             <div className="text-text-secondary text-sm">
                 © {new Date().getFullYear()} MindFlow — Непрерывный поток цифрового сознания.
             </div>

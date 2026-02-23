@@ -17,11 +17,8 @@ import (
 
 // Client — HTTP-клиент для Ollama API.
 type Client struct {
-	// Semaphore
-	sem chan struct{}
 	// BaseURL — endpoint Ollama сервера (default: http://localhost:11434).
 	BaseURL string
-
 	// Model — имя модели в Ollama (default: gemma3).
 	Model string
 
@@ -90,7 +87,6 @@ func NewClient() *Client {
 		model = "gemma3:4b"
 	}
 	return &Client{
-		sem:     make(chan struct{}, 4),
 		BaseURL: baseURL,
 		Model:   model,
 		HTTPClient: &http.Client{
@@ -123,8 +119,6 @@ type ollamaChatResponse struct {
 
 // Complete отправляет запрос в Ollama и возвращает ответ.
 func (c *Client) Complete(ctx context.Context, req CompletionRequest) (CompletionResponse, error) {
-	c.sem <- struct{}{} // with semaphore
-	defer func() { <-c.sem }()
 	start := time.Now()
 
 	messages := req.Messages

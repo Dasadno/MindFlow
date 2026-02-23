@@ -19,7 +19,7 @@ export const MessageInput = ({ onSendMessage, disabled }: MessageInputProps) => 
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // Prevent newline
+            e.preventDefault(); 
             handleSend();
         }
     };

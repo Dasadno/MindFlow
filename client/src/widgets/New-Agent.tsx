@@ -25,14 +25,12 @@ export const NewAgentPopUp = ({ isOpen, onClose, onCreate }: NewAgentPopUpProps)
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Here we would typically call an API or store action
         console.log('Creating agent:', { name, description, personality: selectedPersonality });
 
         if (onCreate) {
             onCreate({ name, description, personality: selectedPersonality });
         }
 
-        // Reset and close
         setName('');
         setDescription('');
         setSelectedPersonality(PERSONALITY_TYPES[0].id);
