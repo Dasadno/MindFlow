@@ -31,13 +31,8 @@
   --color-text-secondary: var(--color-text-secondary);
 }
 
-/* Используем в стилях */
-body {
-  background-color: var(--color-deep-midnight);
-  color: var(--color-text-primary);
-}
-
-/* Или через @apply с правильным синтаксисом */
-body {
-  @apply bg-deep-midnight text-text-primary;
+@layer base {
+  body {
+    @apply bg-deep-midnight text-text-primary antialiased; /*antialiased - for good looking font on dark theme */
+  }
 }
