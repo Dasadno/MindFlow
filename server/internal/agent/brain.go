@@ -166,7 +166,7 @@ func (b *Brain) BuildSystemPrompt(name string, p *Personality, mood Mood, goals 
 }
 
 // Think вызывает LLM с историей диалога и возвращает следующую реплику.
-func (a *Agent) Think(
+func (Brain *Brain) Think(
 	ctx context.Context,
 	client LLMClient,
 	name string,
@@ -174,15 +174,15 @@ func (a *Agent) Think(
 	goals []Goal,
 	history []llm.Message,
 ) (string, error) {
-	sysPrompt := a.Brain.BuildSystemPrompt(name, a.Brain.Personality, mood, goals)
+	sysPrompt := Brain.BuildSystemPrompt(name, Brain.Personality, mood, goals)
 
 	req := llm.CompletionRequest{
 		SystemPrompt: sysPrompt,
 		Messages:     history,
 	}
 
-	if a.Brain.Config.CreativityFactor > 0 {
-		t := a.Brain.Config.CreativityFactor * 0.9
+	if Brain.Config.CreativityFactor > 0 {
+		t := Brain.Config.CreativityFactor * 0.9
 		req.Temperature = &t
 	}
 
@@ -197,15 +197,15 @@ func (a *Agent) Think(
 		Timestamp: time.Now(),
 	}
 
-	a.Brain.Config.Memories = append(a.Brain.Config.Memories, thought.Content)
+	Brain.Config.Memories = append(Brain.Config.Memories, thought.Content)
 
-	a.Brain.ThoughtBuffer = append(a.Brain.ThoughtBuffer, thought)
-	if len(a.Brain.ThoughtBuffer) > a.Brain.Config.MaxThoughts {
-		a.Brain.ThoughtBuffer = a.Brain.ThoughtBuffer[1:]
+	Brain.ThoughtBuffer = append(Brain.ThoughtBuffer, thought)
+	if len(Brain.ThoughtBuffer) > Brain.Config.MaxThoughts {
+		Brain.ThoughtBuffer = Brain.ThoughtBuffer[1:]
 	}
 
 	select {
-	case a.Brain.ThoughtStream <- thought:
+	case Brain.ThoughtStream <- thought:
 	default:
 	}
 
