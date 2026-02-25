@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 export const HomePage = () => {
     const navigate = useNavigate();
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center justify-center min-h-screen [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
             {/* Стили для анимаций */}
             <style>{`
@@ -16,6 +16,8 @@ export const HomePage = () => {
                 .animate-float { animation: float 6s ease-in-out infinite; }
                 .animate-float-delayed { animation: float 6s ease-in-out 2s infinite; }
                 .animate-float-slow { animation: float 8s ease-in-out 4s infinite; }
+                html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+                html, body { scrollbar-width: none; -ms-overflow-style: none;  }
             `}</style>
 
             {/* Декоративные фоновые элементы */}

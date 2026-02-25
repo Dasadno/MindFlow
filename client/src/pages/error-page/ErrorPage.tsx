@@ -60,12 +60,14 @@ const ErrorPage = () => {
     );
 
     return (
-        <div className="flex flex-col min-h-screen bg-deep-midnight font-sans selection:bg-bright-turquoise selection:text-deep-midnight overflow-hidden">
+        <div className="flex flex-col min-h-screen bg-deep-midnight font-sans selection:bg-bright-turquoise selection:text-deep-midnight overflow-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <style>{`
                 @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
                 @keyframes pulse-soft { 0%, 100% { opacity: 0.05; } 50% { opacity: 0.15; } }
                 .animate-float { animation: float 6s ease-in-out infinite; }
                 .animate-pulse-bg { animation: pulse-soft 4s ease-in-out infinite; }
+                html, body { scrollbar-width: none; -ms-overflow-style: none; }
+                html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
             `}</style>
 
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
