@@ -81,14 +81,14 @@ export const Chat = () => {
             {/* --- САЙДБАР (Desktop + Mobile) --- */}
             <aside className={`
                 fixed inset-y-0 left-0 z-50 w-72 bg-[#0a0f1a] border-r border-white/5 backdrop-blur-3xl transition-transform duration-300 ease-in-out
-                md:relative md:translate-x-0 md:flex md:flex-col md:w-80 md:bg-white/[0.01]
+                md:relative md:translate-x-0 md:flex md:flex-col md:w-80 md:bg-white/1
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <div className="p-6 flex items-center justify-between">
                     <a href="/">
                         <div className="flex items-center gap-3 group">
                             <img src="/cover2.png" alt="Лого" className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-[0_0_10px_rgba(38,208,206,0.5)] group-hover:shadow-[0_0_20px_rgba(38,208,206,0.8)] transition-all duration-300" />
-                            <div className="text-xl font-bold bg-gradient-accent bg-clip-text text-transparent uppercase text-white">MindFlow</div>
+                            <div className="text-xl font-bold bg-gradient-accent bg-clip-text uppercase text-white">MindFlow</div>
                         </div>
                     </a>
                     {/* Кнопка закрытия для мобилок */}
@@ -129,11 +129,11 @@ export const Chat = () => {
                                 )}
                             </div>
 
-                            <div className="max-w-[150px] md:max-w-none">
+                            <div className="max-w-37.5 md:max-w-none">
                                 <h1 className="text-white font-semibold tracking-tight text-sm md:text-lg leading-none mb-1 truncate">
                                     {currentAgent ? currentAgent.name : 'Системный поток'}
                                 </h1>
-                                <span className="text-[9px] md:text-[10px] uppercase tracking-[0.1em] md:tracking-[0.2em] text-bright-turquoise/60 font-medium block truncate">
+                                <span className="text-[9px] md:text-[10px] uppercase tracking-widest md:tracking-[0.2em] text-bright-turquoise/60 font-medium block truncate">
                                     {currentAgent?.isActive ? 'Соединение активно' : 'Ожидание выбора'}
                                 </span>
                             </div>
@@ -155,7 +155,7 @@ export const Chat = () => {
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4">
                             <div className="group relative">
                                 <div className="absolute inset-0 bg-bright-turquoise/10 blur-3xl rounded-full scale-150" />
-                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] bg-white/[0.03] flex items-center justify-center mb-6 border border-white/5 overflow-hidden relative z-10">
+                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-4xl md:rounded-[40px] bg-white/3 flex items-center justify-center mb-6 border border-white/5 overflow-hidden relative z-10">
                                     <img src="/cover2.png" alt="Логотип" className="w-full h-full object-cover opacity-70 animate-pulse" />
                                 </div>
                             </div>
@@ -167,10 +167,10 @@ export const Chat = () => {
                 </div>
 
                 {/* ОБЛАСТЬ ВВОДА */}
-                <div className="p-4 md:p-10 bg-gradient-to-t from-deep-midnight via-deep-midnight/90 to-transparent">
+                <div className="p-4 md:p-10 bg-linear-to-t from-deep-midnight via-deep-midnight/90 to-transparent">
                     <form
                         onSubmit={handleSend}
-                        className="max-w-4xl mx-auto flex items-center gap-2 md:gap-3 p-1.5 md:p-2 rounded-[24px] md:rounded-[32px] bg-white/[0.03] border border-white/5 backdrop-blur-3xl focus-within:border-bright-turquoise/30 transition-all duration-500 shadow-2xl"
+                        className="max-w-4xl mx-auto flex items-center gap-2 md:gap-3 p-1.5 md:p-2 rounded-3xl md:rounded-4xl bg-white/3 border border-white/5 backdrop-blur-3xl focus-within:border-bright-turquoise/30 transition-all duration-500 shadow-2xl"
                     >
                         <div className="flex-1">
                             <Input
@@ -192,11 +192,11 @@ export const Chat = () => {
                     </form>
 
                     <div className="mt-4 md:mt-6 flex justify-center items-center gap-4 md:gap-6">
-                        <div className="h-[1px] w-8 md:w-12 bg-white/5" />
+                        <div className="h-px w-8 md:w-12 bg-white/5" />
                         <span className="text-[8px] md:text-[10px] font-mono text-white/40 tracking-[0.3em] md:tracking-[0.5em] uppercase text-center">
                             MindFlow v1.0 <span className="hidden md:inline">Нейронная связь</span>
                         </span>
-                        <div className="h-[1px] w-8 md:w-12 bg-white/5" />
+                        <div className="h-px w-8 md:w-12 bg-white/5" />
                     </div>
                 </div>
 

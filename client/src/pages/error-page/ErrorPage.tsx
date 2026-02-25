@@ -75,7 +75,7 @@ const ErrorPage = () => {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-light-mint/10 blur-[120px] rounded-full animate-pulse" />
             </div>
 
-            <main className="flex-grow flex flex-col items-center justify-center relative z-10 px-6 py-20">
+            <main className="grow flex flex-col items-center justify-center relative z-10 px-6 py-20">
                 <div className="max-w-4xl w-full text-center relative">
                     <h1 className="text-[15rem] md:text-[25rem] font-black leading-none text-white animate-pulse-bg select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-[2px] pointer-events-none tracking-tighter">
                         {errorCode}
@@ -87,7 +87,7 @@ const ErrorPage = () => {
                         </div>
 
                         <h2 className="text-5xl md:text-8xl font-black mb-8 leading-tight">
-                            <span className="bg-gradient-to-r from-bright-turquoise via-light-mint to-sky-blue bg-clip-text text-transparent animate-float inline-block">
+                            <span className="bg-linear-to-r from-bright-turquoise via-light-mint to-sky-blue bg-clip-text text-transparent animate-float inline-block">
                                 {displayTitle}
                             </span>
                         </h2>
