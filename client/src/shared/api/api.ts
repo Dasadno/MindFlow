@@ -52,8 +52,8 @@ export const chatApi = {
         try {
           const data: Event = JSON.parse(event.data);
           onMessage(data);
-          // Сброс счетчика при успешном получении сообщения
           retryCount = 0;
+          
         } catch (error) {
           console.error("Failed to parse SSE message:", error);
         }
@@ -85,21 +85,19 @@ export const chatApi = {
       };
     };
 
-    // Функция расчета задержки с джиттером
     const calculateBackoff = (attempt: number): number => {
       // Экспоненциальный рост
       const exponentialDelay = BASE_DELAY * Math.pow(2, attempt);
 
-      // Добавляем случайный джиттер (±20%) чтобы избежать синхронизации множества клиентов
+      // Тут бля джиттер чтобы коллизий не было 
       const jitter = exponentialDelay * 0.2 * (Math.random() * 2 - 1);
 
-      return Math.min(exponentialDelay + jitter, 30000); // Максимум 30 секунд
+      return Math.min(exponentialDelay + jitter, 30000);
     };
 
-    // Начинаем подключение
     connect();
 
-    // Возвращаем функцию очистки
+    // Очистка 
     return () => {
       isActive = false;
       if (cleanup) {
