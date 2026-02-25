@@ -85,10 +85,12 @@ export const Chat = () => {
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <div className="p-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3 group">
-                        <img src="/cover2.png" alt="Лого" className="w-10 h-10 rounded-2xl object-cover shadow-[0_0_20px_rgba(38,208,206,0.3)]" />
-                        <div className="text-xl font-bold bg-gradient-accent bg-clip-text text-transparent uppercase text-white">MindFlow</div>
-                    </div>
+                    <a href="/">
+                        <div className="flex items-center gap-3 group">
+                            <img src="/cover2.png" alt="Лого" className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-[0_0_10px_rgba(38,208,206,0.5)] group-hover:shadow-[0_0_20px_rgba(38,208,206,0.8)] transition-all duration-300" />
+                            <div className="text-xl font-bold bg-gradient-accent bg-clip-text text-transparent uppercase text-white">MindFlow</div>
+                        </div>
+                    </a>
                     {/* Кнопка закрытия для мобилок */}
                     <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-2 text-white/50 hover:text-white">
                         <X className="w-6 h-6" />
