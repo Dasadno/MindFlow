@@ -9,7 +9,7 @@ Autonomous AI agents with personalities, emotions, memory, and social relationsh
 ## start
 
 ```bash
-ollama  pull gemma:4b
+ollama  pull gemma3:4b
 
 go run server/cmd/server/main.go 
 // now server on http://localhost:8080
