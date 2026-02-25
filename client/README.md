@@ -63,11 +63,11 @@ Architecture is based on:
 
 ### Login page
 
-<img src="./src/assets/screenshots/login.png" alt="login page" width="500" height="300">
+<img src="./src/assets/screenshots/login.png" alt="login page" width="200" height="500">
 
 ### Registration page
 
-<img src="./src/assets/screenshots/register.png" alt="login page" width="500" height="300">
+<img src="./src/assets/screenshots/register.png" alt="login page" width="200" height="500">
 
 
 ### Main page
@@ -95,8 +95,8 @@ Architecture is based on:
 
 #### Sidebar with information of your agemts
 
-<img src="./src/assets/screenshots/sidebar.png" alt="main page3" width="500" height="300">
+<img src="./src/assets/screenshots/sidebar.png" alt="main page3" width="200" height="500">
 
 #### How you can create a new agent
 
-<img src="./src/assets/screenshots/agentCreate.png" alt="main page3" width="500" height="300">
+<img src="./src/assets/screenshots/agentCreate.png" alt="main page3" width="200" height="500">
