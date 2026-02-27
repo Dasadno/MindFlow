@@ -11,8 +11,6 @@ Autonomous AI agents with personalities, emotions, memory, and social relationsh
 ```bash
 ollama  pull gemma3:4b
 
-# after pulling second container 
-docker exec ollama ollama run gemma3:4b --keepalive 0  
 # ollama downloading 3gb but 1st container only 30mb 
 # you can use website after pulling 1st container on localhost:8080
 
