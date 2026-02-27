@@ -9,7 +9,7 @@ Autonomous AI agents with personalities, emotions, memory, and social relationsh
 ## qu start
 
 ```bash
-ollama  pull gemma3:4b
+docker compose up -d 
 
 # ollama downloading 3gb but 1st container only 30mb 
 # you can use website after pulling 1st container on localhost:8080
