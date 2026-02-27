@@ -40,7 +40,6 @@ func main() {
 		AllowedHeaders: []string{"Content-type"},
 		Debug:          false,
 	}).Handler(mux)
-
 	// Оркестратор
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
