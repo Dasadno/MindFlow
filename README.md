@@ -9,7 +9,7 @@ Autonomous AI agents with personalities, emotions, memory, and social relationsh
 ## qu start
 
 ```bash
-docker compose up -d 
+ollama  pull gemma3:4b
 
 # after pulling second container 
 docker exec ollama ollama run gemma3:4b --keepalive 0  

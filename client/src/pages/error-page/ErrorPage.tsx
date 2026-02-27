@@ -60,12 +60,14 @@ const ErrorPage = () => {
     );
 
     return (
-        <div className="flex flex-col min-h-screen bg-deep-midnight font-sans selection:bg-bright-turquoise selection:text-deep-midnight overflow-hidden">
+        <div className="flex flex-col min-h-screen bg-deep-midnight font-sans selection:bg-bright-turquoise selection:text-deep-midnight overflow-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <style>{`
                 @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
                 @keyframes pulse-soft { 0%, 100% { opacity: 0.05; } 50% { opacity: 0.15; } }
                 .animate-float { animation: float 6s ease-in-out infinite; }
                 .animate-pulse-bg { animation: pulse-soft 4s ease-in-out infinite; }
+                html, body { scrollbar-width: none; -ms-overflow-style: none; }
+                html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
             `}</style>
 
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -73,7 +75,7 @@ const ErrorPage = () => {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-light-mint/10 blur-[120px] rounded-full animate-pulse" />
             </div>
 
-            <main className="flex-grow flex flex-col items-center justify-center relative z-10 px-6 py-20">
+            <main className="grow flex flex-col items-center justify-center relative z-10 px-6 py-20">
                 <div className="max-w-4xl w-full text-center relative">
                     <h1 className="text-[15rem] md:text-[25rem] font-black leading-none text-white animate-pulse-bg select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-[2px] pointer-events-none tracking-tighter">
                         {errorCode}
@@ -85,7 +87,7 @@ const ErrorPage = () => {
                         </div>
 
                         <h2 className="text-5xl md:text-8xl font-black mb-8 leading-tight">
-                            <span className="bg-gradient-to-r from-bright-turquoise via-light-mint to-sky-blue bg-clip-text text-transparent animate-float inline-block">
+                            <span className="bg-linear-to-r from-bright-turquoise via-light-mint to-sky-blue bg-clip-text text-transparent animate-float inline-block">
                                 {displayTitle}
                             </span>
                         </h2>

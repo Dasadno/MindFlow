@@ -1,4 +1,4 @@
-# 🧠 MindFlow
+# MindFlow
 
 ## Client part flow 
 
@@ -12,9 +12,14 @@
 ```bash 
   cd client
   npm i
-  npm run dev # or npm run build
-
+  npm run dev
   # client just started on http://localhost:5173
+
+  # for view production build
+  npm run build
+  npm run preview
+
+  # build preview just started on http://localhost:4173
 ```
 
 
@@ -42,8 +47,6 @@ CLIENT
     │   └───ui
     │       └───Button
     ├───store                      
-    ├───stories
-    │   └───assets
     └───widgets            # layer that composes features and pages layers into reusable widgets (Header, Footer, etc.)
 ```
 
@@ -54,4 +57,3 @@ Architecture is based on:
 3. Widgets layer. This layer composes components from the shared layer and the features layer into reusable components with businesss logic.
 4. Pages layer. This layer is responsible for the application's pages, it's just the structure of the pages.
 5. App layer. This layer is responsible for the application's configuration, its routes, global stules, providers etc.
-

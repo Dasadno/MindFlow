@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 export const HomePage = () => {
     const navigate = useNavigate();
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center justify-center min-h-screen [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
             {/* Стили для анимаций */}
             <style>{`
@@ -16,6 +16,8 @@ export const HomePage = () => {
                 .animate-float { animation: float 6s ease-in-out infinite; }
                 .animate-float-delayed { animation: float 6s ease-in-out 2s infinite; }
                 .animate-float-slow { animation: float 8s ease-in-out 4s infinite; }
+                html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+                html, body { scrollbar-width: none; -ms-overflow-style: none;  }
             `}</style>
 
             {/* Декоративные фоновые элементы */}
@@ -31,7 +33,7 @@ export const HomePage = () => {
             <section className="relative pt-48 pb-20 px-6 flex flex-col items-center">
                 <div className="text-center max-w-5xl z-10">
                     <h1 className="text-5xl md:text-7xl font-black mb-8 leading-[1.1] tracking-tight">
-                        <span className="bg-gradient-to-r from-bright-turquoise via-light-mint to-sky-blue bg-clip-text text-transparent">
+                        <span className="bg-linear-to-r from-bright-turquoise via-light-mint to-sky-blue bg-clip-text text-transparent">
                             Там, где искры идей <br /> становятся личностями
                         </span>
                     </h1>
@@ -50,7 +52,7 @@ export const HomePage = () => {
                 </div>
 
                 {/* Интерактивные "кружащиеся" карточки */}
-                <div className="relative mt-24 w-full max-w-5xl h-[300px] hidden md:block">
+                <div className="relative mt-24 w-full max-w-5xl h-75 hidden md:block">
                     {/* Стили для анимаций карточек */}
                     <style>{`
                         @keyframes typing { from { width: 0 } to { width: 100% } }
@@ -103,7 +105,7 @@ export const HomePage = () => {
                     </div>
 
                     {/* Карточка 3: Поток данных */}
-                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-72 h-48 bg-gradient-to-br from-dark-ocean/60 to-deep-midnight border border-white/10 backdrop-blur-md rounded-3xl p-6 animate-float-slow shadow-2xl overflow-hidden">
+                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-72 h-48 bg-linear-to-br from-dark-ocean/60 to-deep-midnight border border-white/10 backdrop-blur-md rounded-3xl p-6 animate-float-slow shadow-2xl overflow-hidden">
                         <div className="text-xs font-mono text-sky-blue mb-4 flex justify-between">
                             <span>MindFlow Stream</span>
                             <span className="animate-pulse text-[8px] bg-sky-blue/20 px-2 rounded-full">LIVE</span>
@@ -111,7 +113,7 @@ export const HomePage = () => {
                         <div className="space-y-2">
                             {[1, 2, 3, 4].map((i) => (
                                 <div key={i} className="flex gap-2">
-                                    <div className="h-1 bg-sky-blue/30 rounded-full" style={{ width: `${Math.random() * 100}%`, transition: 'width 2s' }} />
+                                    <div className="h-1 bg-sky-blue/30 rounded-full" style={{ width: `90%`, transition: 'width 2s' }} />
                                     <div className="h-1 bg-sky-blue/10 rounded-full flex-1" />
                                 </div>
                             ))}
@@ -142,7 +144,7 @@ export const HomePage = () => {
                     </div>
 
                     {/* Для чего проект? */}
-                    <div id="mission" className="md:col-span-2 group rounded-[2.5rem] bg-gradient-to-r from-light-mint/10 to-transparent border border-white/5 p-8 hover:bg-white/5 transition-all">
+                    <div id="mission" className="md:col-span-2 group rounded-[2.5rem] bg-linear-to-r from-light-mint/10 to-transparent border border-white/5 p-8 hover:bg-white/5 transition-all">
                         <h3 className="text-2xl font-bold mb-4 uppercase tracking-tighter text-light-mint">Для чего создан MindFlow?</h3>
                         <p className="text-text-secondary leading-relaxed">
                             Это эксперимент в области автономных ИИ‑структур и самоорганизующихся систем. Мы создаём платформу для наблюдения за тем, как рождаются и взаимодействуют цифровые формы сознания.
